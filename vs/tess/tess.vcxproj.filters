@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2015-2019 LunarG, Inc. -->
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="src">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="lib">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="lib\stb">
+      <UniqueIdentifier>{84c62e96-96b3-403f-9745-30438ffb2940}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\tinyxml">
+      <UniqueIdentifier>{98b1d398-2633-4cbc-87b7-1f09d5d56d8b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\shader">
+      <UniqueIdentifier>{01423fd3-e587-4c30-8e0c-88fd84bb4754}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\tess">
+      <UniqueIdentifier>{89c6879f-ea2f-4bf3-8e19-a2556cd8514f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\tess\vk">
+      <UniqueIdentifier>{a3b16c63-7ebd-4c4b-9f73-22399b384990}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\lib\stb\stb_image.h">
+      <Filter>lib\stb</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\lib\stb\stb_image_write.h">
+      <Filter>lib\stb</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\lib\tinyxml2\tinyxml2.h">
+      <Filter>lib\tinyxml</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\tess\engine.h">
+      <Filter>src\tess</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\tess\types.h">
+      <Filter>src\tess</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\lib\tinyxml2\tinyxml2.cpp">
+      <Filter>lib\tinyxml</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\tess\engine.cc">
+      <Filter>src\tess</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\tess\main.cc">
+      <Filter>src\tess</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\src\shader\tutorial.frag">
+      <Filter>src\shader</Filter>
+    </None>
+    <None Include="..\..\src\shader\tutorial.vert">
+      <Filter>src\shader</Filter>
+    </None>
+    <None Include="..\..\src\shader\compile.bat">
+      <Filter>src\shader</Filter>
+    </None>
+  </ItemGroup>
+</Project>
