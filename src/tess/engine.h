@@ -7,6 +7,9 @@
 
 #include <vulkan/vulkan.hpp>
 
+#include "tess/vk/vk_instance.h"
+#include "tess/vk/vk_surface.h"
+
 struct GLFWwindow;
 
 namespace tess
@@ -60,9 +63,6 @@ private:
   void CreateInstance();
 
   std::vector<const char*> GetRequiredExtensions();
-
-  void PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& create_info);
-  void SetupDebugMessenger();
 
   struct QueueFamilyIndices
   {
@@ -122,13 +122,12 @@ private:
   void CreateSyncObjects();
 
   GLFWwindow* window_ = nullptr;
-  VkInstance instance_ = nullptr;
-  VkDebugUtilsMessengerEXT debug_messenger_ = nullptr;
+  vk::Instance instance_;
+  vk::Surface surface_;
   VkPhysicalDevice physical_device_ = VK_NULL_HANDLE;
   VkDevice device_ = nullptr;
   VkQueue graphics_queue_ = nullptr;
   VkQueue present_queue_ = nullptr;
-  VkSurfaceKHR surface_ = nullptr;
   VkSwapchainKHR swap_chain_ = nullptr;
   std::vector<VkImage> swap_chain_images_;
   VkFormat swap_chain_image_format_ = VK_FORMAT_UNDEFINED;

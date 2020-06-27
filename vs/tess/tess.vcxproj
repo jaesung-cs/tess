@@ -25,11 +25,21 @@
     <ClInclude Include="..\..\lib\tinyxml2\tinyxml2.h" />
     <ClInclude Include="..\..\src\tess\engine.h" />
     <ClInclude Include="..\..\src\tess\types.h" />
+    <ClInclude Include="..\..\src\tess\vk\vk_allocator.h" />
+    <ClInclude Include="..\..\src\tess\vk\vk_exception.h" />
+    <ClInclude Include="..\..\src\tess\vk\vk_object.h" />
+    <ClInclude Include="..\..\src\tess\vk\vk_instance.h" />
+    <ClInclude Include="..\..\src\tess\vk\vk_surface.h" />
+    <ClInclude Include="..\..\src\tess\vk\vk_types.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\lib\tinyxml2\tinyxml2.cpp" />
     <ClCompile Include="..\..\src\tess\engine.cc" />
     <ClCompile Include="..\..\src\tess\main.cc" />
+    <ClCompile Include="..\..\src\tess\vk\vk_allocator.cc" />
+    <ClCompile Include="..\..\src\tess\vk\vk_object.cc" />
+    <ClCompile Include="..\..\src\tess\vk\vk_instance.cc" />
+    <ClCompile Include="..\..\src\tess\vk\vk_surface.cc" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\src\shader\compile.bat" />
