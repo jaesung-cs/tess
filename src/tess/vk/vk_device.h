@@ -12,6 +12,23 @@ namespace vk
 {
 class Device;
 
+class Queue
+{
+  friend class DeviceList;
+
+public:
+  Queue();
+  ~Queue();
+
+  operator VkQueue ()
+  {
+    return queue_;
+  }
+
+private:
+  VkQueue queue_;
+};
+
 class DeviceList
 {
 public:
@@ -63,6 +80,11 @@ public:
 
   void WaitIdle();
 
+  auto GraphicsQueue() const
+  {
+    return graphics_queue_;
+  }
+
 private:
   Instance instance_;
 
@@ -74,7 +96,7 @@ private:
   uint32_t graphics_queue_family_index_ = 0;
 
   // Queues
-  VkQueue graphics_queue_ = NULL;
+  Queue graphics_queue_;
 };
 }
 }

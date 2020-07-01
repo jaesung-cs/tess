@@ -49,7 +49,14 @@ public:
 
 private:
   VkInstance instance_ = nullptr;
-  LayerExtension layer_extension_;
+
+#ifdef NDEBUG
+  bool enable_validation_layers_ = false;
+#else
+  bool enable_validation_layers_ = true;
+#endif
+
+  VkDebugUtilsMessengerEXT debug_messenger_ = nullptr;
 };
 }
 }

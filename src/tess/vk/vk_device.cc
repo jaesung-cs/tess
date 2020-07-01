@@ -254,7 +254,7 @@ Device DeviceList::SelectGraphicsDevice(int device_index)
   result = vkCreateDevice(device.physical_device_, &device_info_, NULL, &device.device_);
 
   // Number of graphics queues in the graphics queue family is 1. Retrieve one graphics queue from the family.
-  vkGetDeviceQueue(device.device_, device.graphics_queue_family_index_, 0, &device.graphics_queue_);
+  vkGetDeviceQueue(device.device_, device.graphics_queue_family_index_, 0, &device.graphics_queue_.queue_);
 
   return device;
 }
@@ -290,6 +290,14 @@ void Device::Destroy()
 void Device::WaitIdle()
 {
   vkDeviceWaitIdle(device_);
+}
+
+Queue::Queue()
+{
+}
+
+Queue::~Queue()
+{
 }
 }
 }

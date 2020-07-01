@@ -18,7 +18,6 @@ VkResult LayerExtension::GetInstanceLayerProperties()
 {
   uint32_t instance_layer_count;
   std::vector<VkLayerProperties> layer_properties;
-  std::vector<LayerProperties> layer_property_list;
   VkResult result;
 
   do
@@ -50,7 +49,7 @@ VkResult LayerExtension::GetInstanceLayerProperties()
     if (result)
       continue;
 
-    layer_property_list.push_back(layer_props);
+    layer_property_list_.push_back(layer_props);
 
     for (auto j : layer_props.extensions)
       std::cout << "\t\t|---[Layer Extension]--> " << j.extensionName << std::endl;

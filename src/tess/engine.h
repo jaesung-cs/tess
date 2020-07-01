@@ -35,23 +35,10 @@ private:
   int width_ = 1600;
   int height_ = 900;
 
-  const std::vector<const char*> validation_layers_ =
-  {
-    "VK_LAYER_KHRONOS_validation"
-  };
-
   const std::vector<const char*> device_extensions_ =
   {
     VK_KHR_SWAPCHAIN_EXTENSION_NAME
   };
-
-#ifdef NDEBUG
-  const bool enable_validation_layers_ = false;
-#else
-  const bool enable_validation_layers_ = true;
-#endif
-
-  bool CheckValidationLayerSupport();
 
   void Initialize();
   void InitializeGlfw();
@@ -59,12 +46,7 @@ private:
 
   void Cleanup();
 
-  void CheckVulkanExtensionSupport();
-
   std::vector<const char*> GetRequiredExtensions();
-
-  void PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& create_info);
-  void SetupDebugMessenger();
 
   struct QueueFamilyIndices
   {
@@ -120,9 +102,6 @@ private:
   void CreateSyncObjects();
 
   GLFWwindow* window_ = nullptr;
-  VkDebugUtilsMessengerEXT debug_messenger_ = nullptr;
-  VkQueue graphics_queue_ = nullptr;
-  VkQueue present_queue_ = nullptr;
   VkSurfaceKHR surface_ = nullptr;
   VkSwapchainKHR swap_chain_ = nullptr;
   std::vector<VkImage> swap_chain_images_;
@@ -157,6 +136,8 @@ private:
   vk::LayerExtension layer_extension_;
   vk::Instance instance_;
   vk::Device device_;
+  vk::Queue graphics_queue_;
+  vk::Queue present_queue_;
 };
 }
 
