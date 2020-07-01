@@ -206,7 +206,32 @@ void Engine::InitializeGlfw()
 
 void Engine::InitializeVulkan()
 {
-  CreateInstance();
+  // Query layer properties
+  layer_extension_.GetInstanceLayerProperties();
+
+  auto extensions = GetRequiredExtensions();
+  std::cout << "Required extensions:" << std::endl;
+  for (auto extension : extensions)
+    std::cout << extension << std::endl;
+
+  // Create instance
+  const std::vector<const char*> layer_names =
+  {
+    "VK_LAYER_LUNARG_api_dump",
+    "VK_LAYER_KHRONOS_validation",
+  };
+
+  const std::vector<const char*> extension_names =
+  {
+    //VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+    VK_KHR_SURFACE_EXTENSION_NAME,
+    VK_EXT_DEBUG_UTILS_EXTENSION_NAME,
+  };
+
+  vk::InstanceCreator instance_creator{ "Tess" };
+  instance_creator.SetLayerExtension(layer_names, extension_names);
+  instance_ = instance_creator.Create();
+
   SetupDebugMessenger();
   CreateSurface();
   PickPhysicalDevice();
@@ -259,6 +284,7 @@ void Engine::RecreateSwapChain()
   CreateCommandBuffers();
 }
 
+/*
 void Engine::CreateInstance()
 {
   if (enable_validation_layers_ && !CheckValidationLayerSupport())
@@ -280,6 +306,10 @@ void Engine::CreateInstance()
   create_info.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
   create_info.ppEnabledExtensionNames = extensions.data();
 
+  std::cout << "Required extensions:" << std::endl;
+  for (auto extension : extensions)
+    std::cout << extension << std::endl;
+
   if (enable_validation_layers_)
   {
     create_info.enabledLayerCount = static_cast<uint32_t>(validation_layers_.size());
@@ -299,6 +329,7 @@ void Engine::CreateInstance()
   if (vkCreateInstance(&create_info, nullptr, &instance_) != VK_SUCCESS)
     throw std::runtime_error("failed to create Vulkan instance!");
 }
+*/
 
 void Engine::Cleanup()
 {
@@ -322,7 +353,7 @@ void Engine::Cleanup()
     DestroyDebugUtilsMessengerEXT(instance_, debug_messenger_, nullptr);
 
   vkDestroySurfaceKHR(instance_, surface_, nullptr);
-  vkDestroyInstance(instance_, nullptr);
+  instance_.Destroy();
 
   glfwDestroyWindow(window_);
   glfwTerminate();
@@ -337,9 +368,11 @@ void Engine::CheckVulkanExtensionSupport()
 
   vkEnumerateInstanceExtensionProperties(nullptr, &extension_count, extensions.data());
 
+  /*
   std::cout << "available extensions:\n";
   for (const auto& extension : extensions)
     std::cout << '\t' << extension.extensionName << '\n';
+    */
 
   /*
   available extensions:
@@ -554,9 +587,11 @@ bool Engine::CheckDeviceExtensionSupport(VkPhysicalDevice device)
   std::vector<VkExtensionProperties> available_extensions(extension_count);
   vkEnumerateDeviceExtensionProperties(device, nullptr, &extension_count, available_extensions.data());
 
+  /*
   std::cout << "Device available extensions:\n";
   for (const auto& extension : available_extensions)
     std::cout << '\t' << extension.extensionName << '\n';
+    */
 
   std::set<std::string> required_extensions(device_extensions_.begin(), device_extensions_.end());
 

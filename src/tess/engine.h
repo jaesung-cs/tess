@@ -7,6 +7,9 @@
 
 #include <vulkan/vulkan.hpp>
 
+#include "tess/vk/vk_layer_extension.h"
+#include "tess/vk/vk_instance.h"
+
 struct GLFWwindow;
 
 namespace tess
@@ -56,8 +59,6 @@ private:
   void Cleanup();
 
   void CheckVulkanExtensionSupport();
-
-  void CreateInstance();
 
   std::vector<const char*> GetRequiredExtensions();
 
@@ -122,7 +123,6 @@ private:
   void CreateSyncObjects();
 
   GLFWwindow* window_ = nullptr;
-  VkInstance instance_ = nullptr;
   VkDebugUtilsMessengerEXT debug_messenger_ = nullptr;
   VkPhysicalDevice physical_device_ = VK_NULL_HANDLE;
   VkDevice device_ = nullptr;
@@ -157,6 +157,10 @@ private:
     float pos[2];
     float color[3];
   };
+
+  // Vulkan wrapper
+  vk::LayerExtension layer_extension_;
+  vk::Instance instance_;
 };
 }
 

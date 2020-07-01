@@ -42,6 +42,15 @@
     <ClInclude Include="..\..\src\tess\types.h">
       <Filter>src\tess</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\tess\vk\vk_instance.h">
+      <Filter>src\tess\vk</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\tess\vk\vk_layer_extension.h">
+      <Filter>src\tess\vk</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\tess\vk\vk_exception.h">
+      <Filter>src\tess\vk</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\lib\tinyxml2\tinyxml2.cpp">
@@ -52,6 +61,12 @@
     </ClCompile>
     <ClCompile Include="..\..\src\tess\main.cc">
       <Filter>src\tess</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\tess\vk\vk_instance.cc">
+      <Filter>src\tess\vk</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\tess\vk\vk_layer_extension.cc">
+      <Filter>src\tess\vk</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
