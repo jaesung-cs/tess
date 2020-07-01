@@ -33,7 +33,7 @@ VkResult LayerExtension::GetInstanceLayerProperties()
     result = vkEnumerateInstanceLayerProperties(&instance_layer_count, layer_properties.data());
   } while (result == VK_INCOMPLETE);
 
-  std::cout << "Instanced Layers" << std::endl
+  std::cout << "Instance Layers" << std::endl
     << "================" << std::endl;
 
   for (auto global_layer_property : layer_properties)

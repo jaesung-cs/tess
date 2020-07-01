@@ -217,7 +217,7 @@ void Engine::InitializeVulkan()
   // Create instance
   const std::vector<const char*> layer_names =
   {
-    "VK_LAYER_LUNARG_api_dump",
+    //"VK_LAYER_LUNARG_api_dump",
     "VK_LAYER_KHRONOS_validation",
   };
 
@@ -232,10 +232,15 @@ void Engine::InitializeVulkan()
   instance_creator.SetLayerExtension(layer_names, extension_names);
   instance_ = instance_creator.Create();
 
+  // Load device list
+  vk::DeviceList device_list(instance_);
+  device_list.PrintDeviceQueueFamilies();
+
+  // Create logical device
+  device_ = device_list.SelectBestGraphicsDevice();
+
   SetupDebugMessenger();
   CreateSurface();
-  PickPhysicalDevice();
-  CreateLogicalDevice();
   CreateSwapChain();
   CreateImageViews();
   CreateRenderPass();
@@ -347,7 +352,7 @@ void Engine::Cleanup()
   vkDestroyShaderModule(device_, frag_shader_module_, nullptr);
   vkDestroyShaderModule(device_, vert_shader_module_, nullptr);
 
-  vkDestroyDevice(device_, nullptr);
+  device_.Destroy();
 
   if (enable_validation_layers_)
     DestroyDebugUtilsMessengerEXT(instance_, debug_messenger_, nullptr);
@@ -455,6 +460,7 @@ void Engine::SetupDebugMessenger()
     throw std::runtime_error("failed to set up debug messenger!");
 }
 
+/*
 void Engine::PickPhysicalDevice()
 {
   uint32_t device_count = 0;
@@ -478,7 +484,9 @@ void Engine::PickPhysicalDevice()
   if (physical_device_ == VK_NULL_HANDLE)
     throw std::runtime_error("failed to find a suitable GPU!");
 }
+*/
 
+/*
 void Engine::CreateLogicalDevice()
 {
   QueueFamilyIndices indices = FindQueueFamilies(physical_device_);
@@ -526,6 +534,7 @@ void Engine::CreateLogicalDevice()
   vkGetDeviceQueue(device_, indices.graphics_family.value(), 0, &graphics_queue_);
   vkGetDeviceQueue(device_, indices.present_family.value(), 0, &present_queue_);
 }
+*/
 
 void Engine::CreateSurface()
 {
@@ -676,7 +685,7 @@ VkPresentModeKHR Engine::ChooseSwapPresentMode(const std::vector<VkPresentModeKH
 
 void Engine::CreateSwapChain()
 {
-  SwapChainSupportDetails swap_chain_support = QuerySwapChainSupport(physical_device_);
+  SwapChainSupportDetails swap_chain_support = QuerySwapChainSupport(device_); // Physical device
 
   VkSurfaceFormatKHR surface_format = ChooseSwapSurfaceFormat(swap_chain_support.formats);
   VkPresentModeKHR present_mode = ChooseSwapPresentMode(swap_chain_support.present_modes);
@@ -698,7 +707,7 @@ void Engine::CreateSwapChain()
   create_info.imageArrayLayers = 1; // 1 unless 3D stereoscopic
   create_info.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
-  QueueFamilyIndices indices = FindQueueFamilies(physical_device_);
+  QueueFamilyIndices indices = FindQueueFamilies(device_); // Physical device
   uint32_t queueFamilyIndices[] = { indices.graphics_family.value(), indices.present_family.value() };
 
   if (indices.graphics_family != indices.present_family)
@@ -1002,7 +1011,7 @@ void Engine::CreateFramebuffers()
 
 void Engine::CreateCommandPool()
 {
-  QueueFamilyIndices queue_family_indices = FindQueueFamilies(physical_device_);
+  QueueFamilyIndices queue_family_indices = FindQueueFamilies(device_); // Physical device
 
   VkCommandPoolCreateInfo pool_info{};
   pool_info.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;

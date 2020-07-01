@@ -9,6 +9,7 @@
 
 #include "tess/vk/vk_layer_extension.h"
 #include "tess/vk/vk_instance.h"
+#include "tess/vk/vk_device.h"
 
 struct GLFWwindow;
 
@@ -79,10 +80,6 @@ private:
   QueueFamilyIndices FindQueueFamilies(VkPhysicalDevice device);
   int IsDeviceSuitable(VkPhysicalDevice device);
 
-  void PickPhysicalDevice();
-
-  void CreateLogicalDevice();
-
   void CreateSurface();
 
   bool CheckDeviceExtensionSupport(VkPhysicalDevice device);
@@ -124,8 +121,6 @@ private:
 
   GLFWwindow* window_ = nullptr;
   VkDebugUtilsMessengerEXT debug_messenger_ = nullptr;
-  VkPhysicalDevice physical_device_ = VK_NULL_HANDLE;
-  VkDevice device_ = nullptr;
   VkQueue graphics_queue_ = nullptr;
   VkQueue present_queue_ = nullptr;
   VkSurfaceKHR surface_ = nullptr;
@@ -161,6 +156,7 @@ private:
   // Vulkan wrapper
   vk::LayerExtension layer_extension_;
   vk::Instance instance_;
+  vk::Device device_;
 };
 }
 
