@@ -6,6 +6,26 @@ namespace tess
 {
 namespace vk
 {
+const char* LayerExtension::LayerName(Layer layer)
+{
+  switch (layer)
+  {
+  case Layer::KHRONOS_VALIDATION: return "VK_LAYER_KHRONOS_validation";
+  default: return nullptr;
+  }
+}
+
+const char* LayerExtension::ExtensionName(Extension extension)
+{
+  switch (extension)
+  {
+  case Extension::KHR_SWAPCHAIN:   return VK_KHR_SWAPCHAIN_EXTENSION_NAME;
+  case Extension::KHR_SURFACE:     return VK_KHR_SURFACE_EXTENSION_NAME;
+  case Extension::EXT_DEBUG_UTILS: return VK_EXT_DEBUG_UTILS_EXTENSION_NAME;
+  default: return nullptr;
+  }
+}
+
 LayerExtension::LayerExtension()
 {
 }
@@ -14,51 +34,73 @@ LayerExtension::~LayerExtension()
 {
 }
 
-VkResult LayerExtension::GetInstanceLayerProperties()
+void LayerExtension::LoadLayers()
 {
-  uint32_t instance_layer_count;
-  std::vector<VkLayerProperties> layer_properties;
   VkResult result;
 
-  do
+  uint32_t extension_count;
+
+  result = vkEnumerateInstanceExtensionProperties(NULL, &extension_count, NULL);
+  std::vector<VkExtensionProperties> extension_properties(extension_count);
+  result = vkEnumerateInstanceExtensionProperties(NULL, &extension_count, extension_properties.data());
+
+  std::cout << "Extensions" << std::endl
+    << "==============" << std::endl;
+
+  for (const auto& extension_property : extension_properties)
+    std::cout << "[Extension]--> " << extension_property.extensionName << std::endl;
+
+
+
+  uint32_t layer_count;
+
+  result = vkEnumerateInstanceLayerProperties(&layer_count, NULL);
+  std::vector<VkLayerProperties> layer_properties(layer_count);
+  result = vkEnumerateInstanceLayerProperties(&layer_count, layer_properties.data());
+
+  for (const auto& layer_property : layer_properties)
   {
-    result = vkEnumerateInstanceLayerProperties(&instance_layer_count, NULL);
-    if (result)
-      return result;
-    if (instance_layer_count == 0)
-      return VK_INCOMPLETE;
+    LayerProperty layer;
+    layer.property = layer_property;
+    LoadExtensionProperties(layer);
 
-    layer_properties.resize(instance_layer_count);
-    result = vkEnumerateInstanceLayerProperties(&instance_layer_count, layer_properties.data());
-  } while (result == VK_INCOMPLETE);
+    layers_.push_back(std::move(layer));
+  }
 
-  std::cout << "Instance Layers" << std::endl
-    << "================" << std::endl;
-
-  for (auto global_layer_property : layer_properties)
+  std::cout << std::endl
+    << "Layers" << std::endl
+    << "==============";
+  for (const auto& layer : layers_)
   {
     std::cout << std::endl
-      << global_layer_property.description << std::endl
-      << "\t|---[Layer Name]--> " << global_layer_property.layerName << std::endl;
+      << layer.property.description << std::endl
+      << "\t|---[Layer Name]--> " << layer.property.layerName << std::endl;
 
-    LayerProperties layer_props;
-    layer_props.properties = global_layer_property;
-
-    // Load instance-level extensions
-    result = GetExtensionProperties(layer_props);
-    if (result)
-      continue;
-
-    layer_property_list_.push_back(layer_props);
-
-    for (auto j : layer_props.extensions)
-      std::cout << "\t\t|---[Layer Extension]--> " << j.extensionName << std::endl;
+    for (const auto& extension_property : layer.extension_properties)
+      std::cout << "\t\t|---[Layer Extension]--> " << extension_property.extensionName << std::endl;
   }
 
   /*
-  Instanced Layers
-  ================
+  Extensions
+  ==============
+  [Extension]--> VK_KHR_device_group_creation
+  [Extension]--> VK_KHR_external_fence_capabilities
+  [Extension]--> VK_KHR_external_memory_capabilities
+  [Extension]--> VK_KHR_external_semaphore_capabilities
+  [Extension]--> VK_KHR_get_physical_device_properties2
+  [Extension]--> VK_KHR_get_surface_capabilities2
+  [Extension]--> VK_KHR_surface
+  [Extension]--> VK_KHR_surface_protected_capabilities
+  [Extension]--> VK_KHR_win32_surface
+  [Extension]--> VK_EXT_debug_report
+  [Extension]--> VK_EXT_debug_utils
+  [Extension]--> VK_EXT_swapchain_colorspace
+  [Extension]--> VK_NV_external_memory_capabilities
+  */
 
+  /*
+  Layers
+  ==============
   NVIDIA Optimus layer
           |---[Layer Name]--> VK_LAYER_NV_optimus
 
@@ -109,24 +151,15 @@ VkResult LayerExtension::GetInstanceLayerProperties()
   */
 }
 
-VkResult LayerExtension::GetExtensionProperties(LayerProperties& layer_props)
+void LayerExtension::LoadExtensionProperties(LayerProperty& layer)
 {
   uint32_t extension_count;
   VkResult result;
 
-  auto layer_name = layer_props.properties.layerName;
-  do
-  {
-    result = vkEnumerateInstanceExtensionProperties(layer_name, &extension_count, NULL);
-
-    if (result || extension_count == 0)
-      continue;
-
-    layer_props.extensions.resize(extension_count);
-    result = vkEnumerateInstanceExtensionProperties(layer_name, &extension_count, layer_props.extensions.data());
-  } while (result == VK_INCOMPLETE);
-
-  return result;
+  const auto& layer_name = layer.property.layerName;
+  result = vkEnumerateInstanceExtensionProperties(layer_name, &extension_count, NULL);
+  layer.extension_properties.resize(extension_count);
+  result = vkEnumerateInstanceExtensionProperties(layer_name, &extension_count, layer.extension_properties.data());
 }
 }
 }

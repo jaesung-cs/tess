@@ -10,29 +10,41 @@ namespace tess
 {
 namespace vk
 {
-struct LayerProperties
+enum class Layer
 {
-  VkLayerProperties properties;
-  std::vector<VkExtensionProperties> extensions;
+  KHRONOS_VALIDATION,
+};
+
+enum class Extension
+{
+  KHR_SWAPCHAIN,
+  KHR_SURFACE,
+  EXT_DEBUG_UTILS,
 };
 
 class LayerExtension
 {
+private:
+  static const char* LayerName(Layer layer);
+  static const char* ExtensionName(Extension extension);
+
 public:
   LayerExtension();
 
   ~LayerExtension();
 
-  VkResult GetInstanceLayerProperties();
-
-  VkResult GetExtensionProperties(LayerProperties& layer_props);
-
-  const auto& LayerPropertyList() const { return layer_property_list_; }
+  void LoadLayers();
 
 private:
-  std::vector<LayerProperties> layer_property_list_;
-  std::vector<std::string> app_requested_layer_names_;
-  std::vector<std::string> app_requested_extension_names_;
+  struct LayerProperty
+  {
+    VkLayerProperties property{};
+    std::vector<VkExtensionProperties> extension_properties;
+  };
+
+  void LoadExtensionProperties(LayerProperty& layer);
+
+  std::vector<LayerProperty> layers_;
 };
 }
 }

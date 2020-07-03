@@ -27,6 +27,9 @@ public:
   Instance Create();
 
 private:
+  std::vector<std::string> layers_;
+  std::vector<std::string> extensions_;
+
   VkApplicationInfo app_info_{};
   VkInstanceCreateInfo instance_info_{};
 };

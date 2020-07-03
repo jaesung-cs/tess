@@ -25,6 +25,7 @@
     <ClInclude Include="..\..\lib\tinyxml2\tinyxml2.h" />
     <ClInclude Include="..\..\src\tess\engine.h" />
     <ClInclude Include="..\..\src\tess\types.h" />
+    <ClInclude Include="..\..\src\tess\vk\vk_command_buffer.h" />
     <ClInclude Include="..\..\src\tess\vk\vk_device.h" />
     <ClInclude Include="..\..\src\tess\vk\vk_exception.h" />
     <ClInclude Include="..\..\src\tess\vk\vk_instance.h" />
@@ -34,6 +35,7 @@
     <ClCompile Include="..\..\lib\tinyxml2\tinyxml2.cpp" />
     <ClCompile Include="..\..\src\tess\engine.cc" />
     <ClCompile Include="..\..\src\tess\main.cc" />
+    <ClCompile Include="..\..\src\tess\vk\vk_command_buffer.cc" />
     <ClCompile Include="..\..\src\tess\vk\vk_device.cc" />
     <ClCompile Include="..\..\src\tess\vk\vk_instance.cc" />
     <ClCompile Include="..\..\src\tess\vk\vk_layer_extension.cc" />
