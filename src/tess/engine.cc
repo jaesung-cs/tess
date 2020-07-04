@@ -178,6 +178,7 @@ void Engine::InitializeVulkan()
   vk::DeviceList device_list{ instance_ };
   device_list.PrintDeviceExtensionProperties();
   device_list.PrintDeviceQueueFamilies();
+  device_list.PrintMemoryProperties();
 
   // Pick physical device
   physical_device_ = device_list.SelectBestGraphicsDevice();
@@ -187,7 +188,6 @@ void Engine::InitializeVulkan()
   device_creator.AddExtension(vk::DeviceExtension::KHR_SWAPCHAIN);
   device_creator.AddGraphicsQueue();
   device_creator.AddPresentQueue(surface_);
-
   device_ = device_creator.Create();
 
   // Get queues from device
@@ -204,10 +204,32 @@ void Engine::InitializeVulkan()
   swapchain_creator.EnableTrippleBuffering();
   swapchain_creator.QueueFamilyExclusiveMode();
   swapchain_ = swapchain_creator.Create();
+
+  // Create vertex buffer
+  vk::BufferCreator buffer_creator{ device_ };
+  buffer_creator.UseAsVertexBuffer();
+  buffer_ = buffer_creator.Create(1048576);
+
+  // Allocate memory chunk
+  // TODO: allocate memory first, then create buffer
+  vk::DeviceMemoryAllocator device_memory_allocator{ device_ };
+  device_memory_allocator.ChooseHostVisibleCoherentMemory(physical_device_, buffer_);
+  device_memory_ = device_memory_allocator.Allocate(1048576);
+
+  // Filling buffer
+  float data[] =
+  {
+    0.0f, -0.5f, 1.0f, 1.0f, 1.0f,
+    0.5f, 0.5f, 0.0f, 1.0f, 0.0f,
+    -0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
+  };
+  device_memory_.MemoryCopy(0, sizeof(float) * 15, data);
 }
 
 void Engine::Cleanup()
 {
+  buffer_.Destroy();
+  device_memory_.Free();
   swapchain_.Destroy();
   device_.Destroy();
   surface_.Destroy();

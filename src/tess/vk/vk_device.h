@@ -28,6 +28,7 @@ public:
 
   void PrintDeviceExtensionProperties();
   void PrintDeviceQueueFamilies();
+  void PrintMemoryProperties();
 
   void SetExtensions(const std::vector<const char*>& extensions);
 
@@ -65,12 +66,19 @@ public:
 
   bool IsSupportedExtension(const std::string& extension_name);
 
+  void LoadMemoryProperties();
+  void PrintMemoryProperties();
+
+  uint32_t FindMemoryTypeIndex(VkMemoryRequirements memory_requirements, VkFlags property_flags);
+
   const auto& QueueFamilies() const { return queue_families_; }
 
 private:
   Instance instance_;
   VkPhysicalDevice physical_device_ = NULL;
 
+  // Device info
+  VkPhysicalDeviceMemoryProperties memory_properties_{};
   std::vector<VkExtensionProperties> extensions_;
   std::unordered_set<std::string> extension_names_;
 
@@ -87,7 +95,6 @@ private:
     TRANSFER,
     SPARSE_BINDING,
   };
-
 
 public:
   DeviceCreator() = delete;
@@ -123,6 +130,7 @@ private:
 
   std::vector<QueueFamilyIndex> queue_family_indices_;
 
+  Instance instance_;
   PhysicalDevice physical_device_;
 };
 
@@ -132,8 +140,6 @@ class Device
 
 public:
   Device();
-
-  explicit Device(Instance instance);
 
   ~Device();
 
@@ -146,8 +152,6 @@ public:
   auto GetQueue(int index) { return queues_[index]; }
 
 private:
-  Instance instance_;
-
   VkDevice device_ = NULL;
 
   std::vector<Queue> queues_;

@@ -72,6 +72,12 @@
     <ClInclude Include="..\..\src\tess\vk\vk_image.h">
       <Filter>src\tess\vk</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\tess\vk\vk_device_memory.h">
+      <Filter>src\tess\vk</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\tess\vk\vk_buffer.h">
+      <Filter>src\tess\vk</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\lib\tinyxml2\tinyxml2.cpp">
@@ -108,6 +114,12 @@
       <Filter>src\tess\vk</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\tess\vk\vk_image.cc">
+      <Filter>src\tess\vk</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\tess\vk\vk_device_memory.cc">
+      <Filter>src\tess\vk</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\tess\vk\vk_buffer.cc">
       <Filter>src\tess\vk</Filter>
     </ClCompile>
   </ItemGroup>

@@ -1,6 +1,7 @@
 #include "tess/vk/vk_device.h"
 
 #include <iostream>
+#include <iomanip>
 
 #include "tess/vk/vk_exception.h"
 
@@ -43,6 +44,7 @@ DeviceList::DeviceList(Instance instance)
     physical_devices_.emplace_back(instance_, physical_device_handle);
     physical_devices_.back().LoadExtensions();
     physical_devices_.back().LoadQueueFamilies();
+    physical_devices_.back().LoadMemoryProperties();
   }
 }
 
@@ -195,6 +197,18 @@ void DeviceList::PrintDeviceQueueFamilies()
   }
 }
 
+void DeviceList::PrintMemoryProperties()
+{
+  std::cout << "Device Memory Properties" << std::endl
+    << "================" << std::endl;
+
+  for (auto physical_device : physical_devices_)
+  {
+    physical_device.PrintMemoryProperties();
+    std::cout << std::endl;
+  }
+}
+
 PhysicalDevice DeviceList::SelectGraphicsDevice(int device_index)
 {
   return PhysicalDevice(physical_devices_[device_index]);
@@ -290,6 +304,82 @@ void PhysicalDevice::PrintDeviceQueueFamilies()
 bool PhysicalDevice::IsSupportedExtension(const std::string& extension_name)
 {
   return extension_names_.find(extension_name) != extension_names_.cend();
+}
+
+void PhysicalDevice::LoadMemoryProperties()
+{
+  vkGetPhysicalDeviceMemoryProperties(physical_device_, &memory_properties_);
+}
+
+void PhysicalDevice::PrintMemoryProperties()
+{
+  std::cout << "Device " << physical_device_ << std::endl;
+
+  std::cout << "Type Flags: Device Local / Host Visible / Host Coherent / Host Cached / Lazily Allocated / Protected" << std::endl;
+  std::cout << memory_properties_.memoryTypeCount << " types" << std::endl;
+  for (int i = 0; i < memory_properties_.memoryTypeCount; i++)
+  {
+    std::cout << "Heap index " << std::setw(2) << memory_properties_.memoryTypes[i].heapIndex << ": "
+      << !!(memory_properties_.memoryTypes[i].propertyFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)
+      << !!(memory_properties_.memoryTypes[i].propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT)
+      << !!(memory_properties_.memoryTypes[i].propertyFlags & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT)
+      << !!(memory_properties_.memoryTypes[i].propertyFlags & VK_MEMORY_PROPERTY_HOST_CACHED_BIT)
+      << !!(memory_properties_.memoryTypes[i].propertyFlags & VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT)
+      << !!(memory_properties_.memoryTypes[i].propertyFlags & VK_MEMORY_PROPERTY_PROTECTED_BIT)
+      << std::endl;
+  }
+
+  /*
+  11 types
+  Heap index  1: 000000
+  Heap Index  1: 000000
+  Heap index  1: 000000
+  Heap index  1: 000000
+  Heap index  1: 000000
+  Heap index  1: 000000
+  Heap index  1: 000000
+  Heap index  0: 100000
+  Heap index  1: 011000
+  Heap index  1: 011100
+  Heap index  2: 111000
+  */
+
+  std::cout << memory_properties_.memoryHeapCount << " heaps" << std::endl;
+  std::cout << "Heap Flags: Device Local / Multi Instance" << std::endl;
+  for (int i = 0; i < memory_properties_.memoryHeapCount; i++)
+  {
+    std::cout << "Heap index " << std::setw(2) << i << std::endl
+      << "\tsize : " << memory_properties_.memoryHeaps[i].size << " bytes" << std::endl
+      << "\tflags: "
+      << !!(memory_properties_.memoryHeaps[i].flags & VK_MEMORY_HEAP_DEVICE_LOCAL_BIT)
+      << !!(memory_properties_.memoryHeaps[i].flags & VK_MEMORY_HEAP_MULTI_INSTANCE_BIT)
+      << std::endl;
+  }
+
+  /*
+  3 heaps
+  Heap Flags: Device Local / Multi Instance
+  Heap index  0
+          size : 11667505152 bytes
+          flags: 10
+  Heap index  1
+          size : 8559652864 bytes
+          flags: 00
+  Heap index  2
+          size : 257949696 bytes
+          flags: 10
+  */
+}
+
+uint32_t PhysicalDevice::FindMemoryTypeIndex(VkMemoryRequirements memory_requirements, VkFlags property_flags)
+{
+  for (uint32_t i = 0; i < memory_properties_.memoryTypeCount; i++)
+  {
+    if ((memory_requirements.memoryTypeBits & (1 << i)) && (memory_properties_.memoryTypes[i].propertyFlags & property_flags) == property_flags)
+      return i;
+  }
+
+  throw std::runtime_error("Failed to find suitable memory type!");
 }
 
 
@@ -464,11 +554,6 @@ Device DeviceCreator::Create()
 // Device
 //
 Device::Device() = default;
-
-Device::Device(Instance instance)
-  : instance_(instance)
-{
-}
 
 Device::~Device()
 {

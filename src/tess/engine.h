@@ -12,6 +12,8 @@
 #include "tess/vk/vk_device.h"
 #include "tess/vk/vk_surface.h"
 #include "tess/vk/vk_swapchain.h"
+#include "tess/vk/vk_buffer.h"
+#include "tess/vk/vk_device_memory.h"
 
 struct GLFWwindow;
 
@@ -58,6 +60,9 @@ private:
   vk::Queue present_queue_;
 
   vk::Swapchain swapchain_;
+
+  vk::Buffer buffer_;
+  vk::DeviceMemory device_memory_;
 
   // Validation layer for debug
 #ifdef NDEBUG
