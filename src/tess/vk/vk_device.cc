@@ -352,6 +352,7 @@ void DeviceCreator::AddGraphicsQueue()
       queue_family_count_[i] < queue_family.queueCount)
     {
       found = true;
+      queue_family_indices_.emplace_back(i, queue_family_count_[i]);
       queue_family_count_[i]++;
       break;
     }
@@ -359,6 +360,34 @@ void DeviceCreator::AddGraphicsQueue()
 
   if (!found)
     throw std::runtime_error("Cannot add a graphics queue any more!");
+}
+
+void DeviceCreator::AddPresentQueue(Surface surface)
+{
+  const auto& queue_families = physical_device_.QueueFamilies();
+
+  bool found = false;
+  for (int i = 0; i < queue_families.size(); i++)
+  {
+    const auto& queue_family = queue_families[i];
+
+    if (queue_family.queueFlags & VK_QUEUE_GRAPHICS_BIT)
+    {
+      VkBool32 present_support = false;
+      vkGetPhysicalDeviceSurfaceSupportKHR(physical_device_, i, surface, &present_support);
+
+      if (present_support)
+      {
+        found = true;
+        queue_family_indices_.emplace_back(i, queue_family_count_[i]);
+        queue_family_count_[i]++;
+        break;
+      }
+    }
+  }
+
+  if (!found)
+    throw std::runtime_error("Cannot add a present queue any more!");
 }
 
 Device DeviceCreator::Create()
@@ -421,13 +450,10 @@ Device DeviceCreator::Create()
   result = vkCreateDevice(physical_device_, &create_info_, NULL, &device.device_);
 
   // Retrieve queue handles
-  for (int i = 0; i < queue_family_count_.size(); i++)
+  for (const auto& queue_family_index : queue_family_indices_)
   {
-    for (int j = 0; j < queue_family_count_[i]; j++)
-    {
-      device.queues_.emplace_back();
-      vkGetDeviceQueue(device, i, j, &device.queues_.back().queue_);
-    }
+    device.queues_.emplace_back();
+    vkGetDeviceQueue(device, queue_family_index.family_index, queue_family_index.queue_index, &device.queues_.back().queue_);
   }
 
   return device;

@@ -10,6 +10,7 @@
 #include "tess/vk/vk_layer_extension.h"
 #include "tess/vk/vk_instance.h"
 #include "tess/vk/vk_device.h"
+#include "tess/vk/vk_surface.h"
 
 struct GLFWwindow;
 
@@ -51,6 +52,8 @@ private:
   vk::Device device_;
   vk::Queue graphics_queue_;
   vk::Queue present_queue_;
+
+  vk::Surface surface_;
 
   // Validation layer for debug
 #ifdef NDEBUG

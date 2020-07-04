@@ -170,8 +170,12 @@ void Engine::InitializeVulkan()
   // Create instance
   instance_ = instance_creator.Create();
 
+  // Create surface
+  vk::GlfwSurfaceCreator surface_creator{ instance_, window_ };
+  surface_ = surface_creator.Create();
+
   // Load device list
-  vk::DeviceList device_list(instance_);
+  vk::DeviceList device_list{ instance_ };
   device_list.PrintDeviceExtensionProperties();
   device_list.PrintDeviceQueueFamilies();
 
@@ -179,14 +183,16 @@ void Engine::InitializeVulkan()
   physical_device_ = device_list.SelectBestGraphicsDevice();
 
   // Create logical device
-  vk::DeviceCreator device_creator(physical_device_);
+  vk::DeviceCreator device_creator{ physical_device_ };
   device_creator.AddExtension(vk::DeviceExtension::KHR_SWAPCHAIN);
   device_creator.AddGraphicsQueue();
+  device_creator.AddPresentQueue(surface_);
 
   device_ = device_creator.Create();
 
   // Get queues from device
   graphics_queue_ = device_.GetQueue(0);
+  present_queue_ = device_.GetQueue(1);
 }
 
 void Engine::Cleanup()

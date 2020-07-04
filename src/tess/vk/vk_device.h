@@ -8,6 +8,7 @@
 
 #include "tess/vk/vk_instance.h"
 #include "tess/vk/vk_queue.h"
+#include "tess/vk/vk_surface.h"
 
 namespace tess
 {
@@ -79,13 +80,14 @@ private:
 class DeviceCreator
 {
 private:
-  enum class QueueType : uint32_t
+  enum class QueueType
   {
-    GRAPHICS_BIT = 0x1,
-    COMPUTE_BIT = 0x2,
-    TRANSFER_BIT = 0x4,
-    SPARSE_BINDING_BIT = 0x8,
+    GRAPHICS,
+    COMPUTE,
+    TRANSFER,
+    SPARSE_BINDING,
   };
+
 
 public:
   DeviceCreator() = delete;
@@ -98,6 +100,7 @@ public:
   void AddExtension(const std::string& extension_name);
 
   void AddGraphicsQueue();
+  void AddPresentQueue(Surface surface);
 
   Device Create();
 
@@ -108,6 +111,17 @@ private:
   VkDeviceCreateInfo create_info_{};
 
   std::vector<int> queue_family_count_;
+
+  struct QueueFamilyIndex
+  {
+    QueueFamilyIndex(int family_index, int queue_index)
+      : family_index(family_index), queue_index(queue_index) {}
+
+    int family_index;
+    int queue_index;
+  };
+
+  std::vector<QueueFamilyIndex> queue_family_indices_;
 
   PhysicalDevice physical_device_;
 };
