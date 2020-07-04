@@ -20,7 +20,7 @@ GlfwSurfaceCreator::~GlfwSurfaceCreator()
 
 Surface GlfwSurfaceCreator::Create()
 {
-  Surface surface{instance_};
+  Surface surface{ instance_ };
 
   if (VkResult result = glfwCreateWindowSurface(instance_, window_, nullptr, &surface.surface_))
     throw Exception("failed to create window surface!", result);

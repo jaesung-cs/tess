@@ -11,6 +11,7 @@
 #include "tess/vk/vk_instance.h"
 #include "tess/vk/vk_device.h"
 #include "tess/vk/vk_surface.h"
+#include "tess/vk/vk_swapchain.h"
 
 struct GLFWwindow;
 
@@ -48,12 +49,15 @@ private:
   // Vulkan wrapper
   vk::LayerExtension layer_extension_;
   vk::Instance instance_;
+
+  vk::Surface surface_;
+
   vk::PhysicalDevice physical_device_;
   vk::Device device_;
   vk::Queue graphics_queue_;
   vk::Queue present_queue_;
 
-  vk::Surface surface_;
+  vk::Swapchain swapchain_;
 
   // Validation layer for debug
 #ifdef NDEBUG

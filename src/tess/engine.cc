@@ -193,11 +193,24 @@ void Engine::InitializeVulkan()
   // Get queues from device
   graphics_queue_ = device_.GetQueue(0);
   present_queue_ = device_.GetQueue(1);
+
+  // Create swapchain
+  vk::SwapchainCreator swapchain_creator{ device_, surface_ };
+  swapchain_creator.LoadDeviceSwapchainProperties(physical_device_);
+  swapchain_creator.PrintSwapchainProperties();
+  swapchain_creator.ChooseCurrentExtent();
+  swapchain_creator.ChooseDefaultFormat();
+  swapchain_creator.ChooseFifoPresentMode();
+  swapchain_creator.EnableTrippleBuffering();
+  swapchain_creator.QueueFamilyExclusiveMode();
+  swapchain_ = swapchain_creator.Create();
 }
 
 void Engine::Cleanup()
 {
+  swapchain_.Destroy();
   device_.Destroy();
+  surface_.Destroy();
   instance_.Destroy();
 
   glfwDestroyWindow(window_);
