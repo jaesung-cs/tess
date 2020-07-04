@@ -41,17 +41,23 @@ private:
 
   void Cleanup();
 
-  std::vector<const char*> GetRequiredExtensions();
-
   GLFWwindow* window_ = nullptr;
   size_t current_frame_ = 0;
 
   // Vulkan wrapper
   vk::LayerExtension layer_extension_;
   vk::Instance instance_;
+  vk::PhysicalDevice physical_device_;
   vk::Device device_;
   vk::Queue graphics_queue_;
   vk::Queue present_queue_;
+
+  // Validation layer for debug
+#ifdef NDEBUG
+  const bool enable_validation_layer_ = false;
+#else
+  const bool enable_validation_layer_ = true;
+#endif
 };
 }
 

@@ -23,16 +23,19 @@ public:
   Exception(const std::string& what, VkResult result)
     : what_(what), result_(result)
   {
+    what_with_error_code_ = what_ + " (VkResult code: " + std::to_string(static_cast<int>(result_)) + ")";
   }
 
   const char* what() const override
   {
-    return (what_ + " (VkResult code: " + std::to_string(static_cast<int>(result_)) + ")").c_str();
+    return what_with_error_code_.c_str();
   }
 
 private:
   std::string what_;
   VkResult result_ = VK_SUCCESS;
+
+  std::string what_with_error_code_;
 };
 }
 }

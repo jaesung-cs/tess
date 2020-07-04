@@ -102,7 +102,7 @@ void Engine::Run()
     glfwPollEvents();
   }
 
-  vkDeviceWaitIdle(device_);
+  device_.WaitIdle();
 
   Cleanup();
 }
@@ -148,61 +148,45 @@ void Engine::InitializeGlfw()
 
 void Engine::InitializeVulkan()
 {
-  // Query layer properties
-  layer_extension_.LoadLayers();
+  // Available layers and extensions
+  layer_extension_.LoadLayerExtensions();
+  layer_extension_.PrintLayerExtensions();
 
-  auto extensions = GetRequiredExtensions();
-  std::cout << "Required extensions:" << std::endl;
-  for (auto extension : extensions)
-    std::cout << extension << std::endl;
-
-  // Create instance
-
-  // Erase unsupported layers
-  /*
-  uint32_t layer_count;
-  vkEnumerateInstanceLayerProperties(&layer_count, nullptr);
-  std::vector<VkLayerProperties> available_layers(layer_count);
-  vkEnumerateInstanceLayerProperties(&layer_count, available_layers.data());
-
-  std::vector<const char*> supported_layers;
-
-  for (auto layer : layer_names)
-  {
-    bool supported = false;
-    for (const auto& available_layer : available_layers)
-    {
-      if (!strcmp(layer, available_layer.layerName))
-      {
-        supported = true;
-        break;
-      }
-    }
-
-    if (!supported)
-      std::cout << "No layer supported found, removed from layer: " << layer << std::endl;
-    else
-      supported_layers.push_back(layer);
-  }
-
+  // Prepare for instance creation
   vk::InstanceCreator instance_creator{ "Tess" };
 
-  instance_creator.AddLayers({
-    ""
-    });
+  // Load validation layer
+  if (enable_validation_layer_)
+    instance_creator.EnableValidationLayer();
 
+  // Load glfw required extensions
+  uint32_t glfw_extension_count = 0;
+  const char** glfw_extensions;
+  glfw_extensions = glfwGetRequiredInstanceExtensions(&glfw_extension_count);
+
+  for (int i = 0; i < glfw_extension_count; i++)
+    instance_creator.AddExtension(glfw_extensions[i]);
+
+  // Create instance
   instance_ = instance_creator.Create();
 
   // Load device list
   vk::DeviceList device_list(instance_);
+  device_list.PrintDeviceExtensionProperties();
   device_list.PrintDeviceQueueFamilies();
 
+  // Pick physical device
+  physical_device_ = device_list.SelectBestGraphicsDevice();
+
   // Create logical device
-  device_ = device_list.SelectBestGraphicsDevice();
+  vk::DeviceCreator device_creator(physical_device_);
+  device_creator.AddExtension(vk::DeviceExtension::KHR_SWAPCHAIN);
+  device_creator.AddGraphicsQueue();
+
+  device_ = device_creator.Create();
 
   // Get queues from device
-  graphics_queue_ = device_.GraphicsQueue();
-  */
+  graphics_queue_ = device_.GetQueue(0);
 }
 
 void Engine::Cleanup()
@@ -212,16 +196,5 @@ void Engine::Cleanup()
 
   glfwDestroyWindow(window_);
   glfwTerminate();
-}
-
-std::vector<const char*> Engine::GetRequiredExtensions()
-{
-  uint32_t glfw_extension_count = 0;
-  const char** glfw_extensions;
-  glfw_extensions = glfwGetRequiredInstanceExtensions(&glfw_extension_count);
-
-  std::vector<const char*> extensions(glfw_extensions, glfw_extensions + glfw_extension_count);
-
-  return extensions;
 }
 }

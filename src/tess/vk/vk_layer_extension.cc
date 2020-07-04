@@ -19,12 +19,21 @@ const char* LayerExtension::ExtensionName(Extension extension)
 {
   switch (extension)
   {
-  case Extension::KHR_SWAPCHAIN:   return VK_KHR_SWAPCHAIN_EXTENSION_NAME;
   case Extension::KHR_SURFACE:     return VK_KHR_SURFACE_EXTENSION_NAME;
   case Extension::EXT_DEBUG_UTILS: return VK_EXT_DEBUG_UTILS_EXTENSION_NAME;
   default: return nullptr;
   }
 }
+
+const char* LayerExtension::ExtensionName(DeviceExtension extension)
+{
+  switch (extension)
+  {
+  case DeviceExtension::KHR_SWAPCHAIN: return VK_KHR_SWAPCHAIN_EXTENSION_NAME;
+  default: return nullptr;
+  }
+}
+
 
 LayerExtension::LayerExtension()
 {
@@ -34,38 +43,47 @@ LayerExtension::~LayerExtension()
 {
 }
 
-void LayerExtension::LoadLayers()
+void LayerExtension::LoadLayerExtensions()
 {
   VkResult result;
 
-  uint32_t extension_count;
-
-  result = vkEnumerateInstanceExtensionProperties(NULL, &extension_count, NULL);
-  std::vector<VkExtensionProperties> extension_properties(extension_count);
-  result = vkEnumerateInstanceExtensionProperties(NULL, &extension_count, extension_properties.data());
-
-  std::cout << "Extensions" << std::endl
-    << "==============" << std::endl;
-
-  for (const auto& extension_property : extension_properties)
-    std::cout << "[Extension]--> " << extension_property.extensionName << std::endl;
-
-
-
+  // Load layers
   uint32_t layer_count;
-
   result = vkEnumerateInstanceLayerProperties(&layer_count, NULL);
   std::vector<VkLayerProperties> layer_properties(layer_count);
   result = vkEnumerateInstanceLayerProperties(&layer_count, layer_properties.data());
 
   for (const auto& layer_property : layer_properties)
   {
+    // Load layer extensions
     LayerProperty layer;
     layer.property = layer_property;
     LoadExtensionProperties(layer);
 
     layers_.push_back(std::move(layer));
   }
+
+  // Load extensions
+  uint32_t extension_count;
+  result = vkEnumerateInstanceExtensionProperties(NULL, &extension_count, NULL);
+  extensions_.resize(extension_count);
+  result = vkEnumerateInstanceExtensionProperties(NULL, &extension_count, extensions_.data());
+
+  // Register names
+  for (const auto& layer : layers_)
+    layer_names_.insert(layer.property.layerName);
+
+  for (const auto& extension_property : extensions_)
+    extension_names_.insert(extension_property.extensionName);
+}
+
+void LayerExtension::PrintLayerExtensions()
+{
+  std::cout << "Extensions" << std::endl
+    << "==============" << std::endl;
+
+  for (const auto& extension_property : extensions_)
+    std::cout << "[Extension]--> " << extension_property.extensionName << std::endl;
 
   std::cout << std::endl
     << "Layers" << std::endl
@@ -160,6 +178,16 @@ void LayerExtension::LoadExtensionProperties(LayerProperty& layer)
   result = vkEnumerateInstanceExtensionProperties(layer_name, &extension_count, NULL);
   layer.extension_properties.resize(extension_count);
   result = vkEnumerateInstanceExtensionProperties(layer_name, &extension_count, layer.extension_properties.data());
+}
+
+bool LayerExtension::IsSupportedLayer(const std::string& layer_name)
+{
+  return layer_names_.find(layer_name) != layer_names_.cend();
+}
+
+bool LayerExtension::IsSupportedExtension(const std::string& extension_name)
+{
+  return extension_names_.find(extension_name) != extension_names_.cend();
 }
 }
 }

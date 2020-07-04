@@ -18,11 +18,16 @@ class Instance;
 class InstanceCreator
 {
 public:
-  explicit InstanceCreator(const std::string& app_name = "");
+  InstanceCreator(const std::string& app_name = "");
 
   ~InstanceCreator();
 
-  void SetLayerExtension(const std::vector<const char*>& layers, const std::vector<const char*>& extensions);
+  void EnableValidationLayer();
+
+  void AddLayer(Layer layer);
+  void AddLayer(const std::string& layer_name);
+  void AddExtension(Extension extension);
+  void AddExtension(const std::string& extension_name);
 
   Instance Create();
 
@@ -32,6 +37,9 @@ private:
 
   VkApplicationInfo app_info_{};
   VkInstanceCreateInfo instance_info_{};
+
+  bool enable_validation_layers_ = false;
+  vk::LayerExtension layer_extension_;
 };
 
 class Instance
@@ -45,21 +53,10 @@ public:
 
   void Destroy();
 
-  operator VkInstance ()
-  {
-    return instance_;
-  }
+  operator VkInstance () { return instance_; }
 
 private:
   VkInstance instance_ = nullptr;
-
-#ifdef NDEBUG
-  bool enable_validation_layers_ = false;
-#else
-  bool enable_validation_layers_ = true;
-#endif
-
-  VkDebugUtilsMessengerEXT debug_messenger_ = nullptr;
 };
 }
 }

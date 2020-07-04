@@ -70,54 +70,101 @@ InstanceCreator::InstanceCreator(const std::string& app_name)
   app_info_.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
   app_info_.pEngineName = "No Engine";
   app_info_.engineVersion = VK_MAKE_VERSION(1, 0, 0);
-  app_info_.apiVersion = VK_API_VERSION_1_0;
+  app_info_.apiVersion = VK_API_VERSION_1_2;
 
   instance_info_.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-  instance_info_.pNext = NULL;
   instance_info_.flags = 0;
   instance_info_.pApplicationInfo = &app_info_;
 
-  instance_info_.enabledLayerCount = 0;
-  instance_info_.ppEnabledLayerNames = NULL;
-  instance_info_.enabledExtensionCount = 0;
-  instance_info_.ppEnabledExtensionNames = NULL;
-
-  /*
-  Layer:
-  VK_LAYER_LUNARG_api_dump
-  VK_LAYER_KHRONOS_validation
-
-  Extensions:
-  VK_KHR_SWAPCHAIN_EXTENSION_NAME
-  VK_KHR_SURFACE_EXTENSION_NAME
-  VK_KHR_win32_surface
-  VK_EXT_DEBUG_UTILS_EXTENSION_NAME
-  */
+  layer_extension_.LoadLayerExtensions();
 }
 
 InstanceCreator::~InstanceCreator()
 {
 }
 
-void InstanceCreator::SetLayerExtension(const std::vector<const char*>& layers, const std::vector<const char*>& extensions)
+void InstanceCreator::EnableValidationLayer()
 {
-  instance_info_.enabledLayerCount = layers.size();
-  instance_info_.ppEnabledLayerNames = layers.data();
+  enable_validation_layers_ = true;
+  AddLayer(vk::Layer::KHRONOS_VALIDATION);
+  AddExtension(vk::Extension::EXT_DEBUG_UTILS);
+}
 
-  instance_info_.enabledExtensionCount = extensions.size();
-  instance_info_.ppEnabledExtensionNames = extensions.data();
+void InstanceCreator::AddLayer(Layer layer)
+{
+  AddLayer(LayerExtension::LayerName(layer));
+}
+
+void InstanceCreator::AddLayer(const std::string& layer_name)
+{
+  if (layer_extension_.IsSupportedLayer(layer_name))
+  {
+    // Check duplication
+    bool found = false;
+    for (const auto& layer : layers_)
+    {
+      if (layer == layer_name)
+      {
+        found = true;
+        break;
+      }
+    }
+
+    if (!found)
+      layers_.push_back(layer_name);
+  }
+  else
+    throw std::runtime_error("Unsupported layer: \"" + layer_name + "\"!");
+}
+
+void InstanceCreator::AddExtension(Extension extension)
+{
+  AddExtension(LayerExtension::ExtensionName(extension));
+}
+
+void InstanceCreator::AddExtension(const std::string& extension_name)
+{
+  if (layer_extension_.IsSupportedExtension(extension_name))
+  {
+    // Check duplication
+    bool found = false;
+    for (const auto& extension : extensions_)
+    {
+      if (extension == extension_name)
+      {
+        found = true;
+        break;
+      }
+    }
+
+    if (!found)
+      extensions_.push_back(extension_name);
+  }
+  else
+    throw std::runtime_error("Unsupported extension: \"" + extension_name + "\"!");
 }
 
 Instance InstanceCreator::Create()
 {
   Instance instance;
 
-  auto result = vkCreateInstance(&instance_info_, NULL, &instance.instance_);
-  if (result != VK_SUCCESS)
-    throw Exception("Error creating instance", result);
+  // Create pointer to array of const char* for layers and extensions
+  std::vector<const char*> layers;
+  for (const auto& layer : layers_)
+    layers.push_back(layer.c_str());
+
+  instance_info_.enabledLayerCount = layers.size();
+  instance_info_.ppEnabledLayerNames = layers.data();
+
+  std::vector<const char*> extensions;
+  for (const auto& extension : extensions_)
+    extensions.push_back(extension.c_str());
+
+  instance_info_.enabledExtensionCount = extensions.size();
+  instance_info_.ppEnabledExtensionNames = extensions.data();
 
   // Setup debug messenger
-  if (instance.enable_validation_layers_)
+  if (enable_validation_layers_)
   {
     VkDebugUtilsMessengerCreateInfoEXT create_info{};
     create_info = {};
@@ -127,9 +174,15 @@ Instance InstanceCreator::Create()
     create_info.pfnUserCallback = debug_callback;
     create_info.pUserData = instance; // Optional
 
-    if (CreateDebugUtilsMessengerEXT(instance, &create_info, nullptr, &instance.debug_messenger_) != VK_SUCCESS)
-      throw std::runtime_error("failed to set up debug messenger!");
+    instance_info_.pNext = &create_info;
   }
+  else
+    instance_info_.pNext = NULL;
+
+  // Create instance
+  auto result = vkCreateInstance(&instance_info_, NULL, &instance.instance_);
+  if (result != VK_SUCCESS)
+    throw Exception("Error creating instance", result);
 
   return instance;
 }
@@ -146,9 +199,6 @@ void Instance::Destroy()
 {
   if (instance_)
   {
-    if (enable_validation_layers_)
-      DestroyDebugUtilsMessengerEXT(instance_, debug_messenger_, nullptr);
-
     vkDestroyInstance(instance_, NULL);
     instance_ = nullptr;
   }

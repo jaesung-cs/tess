@@ -1,40 +1,27 @@
 #ifndef TESS_VK_VK_DEVICE_H_
 #define TESS_VK_VK_DEVICE_H_
 
+#include <array>
+#include <map>
+
 #include <vulkan/vulkan.h>
 
 #include "tess/vk/vk_instance.h"
-#include "tess/vk/vk_layer_extension.h"
+#include "tess/vk/vk_queue.h"
 
 namespace tess
 {
 namespace vk
 {
+class PhysicalDevice;
 class Device;
-
-class Queue
-{
-  friend class DeviceList;
-
-public:
-  Queue();
-  ~Queue();
-
-  operator VkQueue ()
-  {
-    return queue_;
-  }
-
-private:
-  VkQueue queue_;
-};
 
 class DeviceList
 {
 public:
   DeviceList();
 
-  DeviceList(Instance instance);
+  explicit DeviceList(Instance instance);
 
   ~DeviceList();
 
@@ -43,60 +30,113 @@ public:
 
   void SetExtensions(const std::vector<const char*>& extensions);
 
-  Device SelectGraphicsDevice(int device_index);
-  Device SelectBestGraphicsDevice();
+  PhysicalDevice SelectGraphicsDevice(int device_index);
+  PhysicalDevice SelectBestGraphicsDevice();
 
 private:
   Instance instance_;
 
-  std::vector<VkPhysicalDevice> physical_devices_;
+  std::vector<PhysicalDevice> physical_devices_;
 
   VkDeviceQueueCreateInfo queue_info_{};
   VkDeviceCreateInfo device_info_{};
 };
 
-class Device
+class PhysicalDevice
 {
-  friend class DeviceList;
-
 public:
-  Device();
+  PhysicalDevice();
 
-  Device(Instance instance);
+  PhysicalDevice(Instance instance, VkPhysicalDevice physical_device);
 
-  ~Device();
-
-  void Destroy();
-
-  operator VkDevice ()
-  {
-    return device_;
-  }
+  ~PhysicalDevice();
 
   operator VkPhysicalDevice ()
   {
     return physical_device_;
   }
 
+  void LoadExtensions();
+  void LoadQueueFamilies();
+
+  void PrintDeviceExtensionProperties();
+  void PrintDeviceQueueFamilies();
+
+  bool IsSupportedExtension(const std::string& extension_name);
+
+  const auto& QueueFamilies() const { return queue_families_; }
+
+private:
+  Instance instance_;
+  VkPhysicalDevice physical_device_ = NULL;
+
+  std::vector<VkExtensionProperties> extensions_;
+  std::unordered_set<std::string> extension_names_;
+
+  std::vector<VkQueueFamilyProperties> queue_families_;
+};
+
+class DeviceCreator
+{
+private:
+  enum class QueueType : uint32_t
+  {
+    GRAPHICS_BIT = 0x1,
+    COMPUTE_BIT = 0x2,
+    TRANSFER_BIT = 0x4,
+    SPARSE_BINDING_BIT = 0x8,
+  };
+
+public:
+  DeviceCreator() = delete;
+
+  explicit DeviceCreator(PhysicalDevice physical_device);
+
+  ~DeviceCreator();
+
+  void AddExtension(DeviceExtension extension);
+  void AddExtension(const std::string& extension_name);
+
+  void AddGraphicsQueue();
+
+  Device Create();
+
+private:
+  std::vector<std::string> extensions_;
+
+  VkPhysicalDeviceFeatures physical_device_features_{};
+  VkDeviceCreateInfo create_info_{};
+
+  std::vector<int> queue_family_count_;
+
+  PhysicalDevice physical_device_;
+};
+
+class Device
+{
+  friend class DeviceCreator;
+
+public:
+  Device();
+
+  explicit Device(Instance instance);
+
+  ~Device();
+
+  void Destroy();
+
+  operator VkDevice () { return device_; }
+
   void WaitIdle();
 
-  auto GraphicsQueue() const
-  {
-    return graphics_queue_;
-  }
+  auto GetQueue(int index) { return queues_[index]; }
 
 private:
   Instance instance_;
 
   VkDevice device_ = NULL;
-  VkPhysicalDevice physical_device_ = NULL;
 
-  // Queue indices
-  uint32_t queue_family_count_ = 0;
-  uint32_t graphics_queue_family_index_ = 0;
-
-  // Queues
-  Queue graphics_queue_;
+  std::vector<Queue> queues_;
 };
 }
 }

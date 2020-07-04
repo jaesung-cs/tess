@@ -8,18 +8,15 @@ namespace tess
 {
 namespace vk
 {
+//
+// DeviceList
+//
 DeviceList::DeviceList() = default;
 
 DeviceList::DeviceList(Instance instance)
   : instance_(instance)
 {
   // Initialize logical device create info
-  queue_info_.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-  queue_info_.pNext = NULL;
-  queue_info_.queueFamilyIndex = 0;
-  queue_info_.queueCount = 0;
-  queue_info_.pQueuePriorities = NULL;
-
   device_info_.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
   device_info_.pNext = NULL;
 
@@ -37,8 +34,16 @@ DeviceList::DeviceList(Instance instance)
   // Query physical devices
   uint32_t physical_device_count;
   vkEnumeratePhysicalDevices(instance, &physical_device_count, NULL);
-  physical_devices_.resize(physical_device_count);
-  vkEnumeratePhysicalDevices(instance, &physical_device_count, physical_devices_.data());
+  std::vector<VkPhysicalDevice> physical_device_handles(physical_device_count);
+  vkEnumeratePhysicalDevices(instance, &physical_device_count, physical_device_handles.data());
+
+  // Create PhysicalDevice wrappers
+  for (auto physical_device_handle : physical_device_handles)
+  {
+    physical_devices_.emplace_back(instance_, physical_device_handle);
+    physical_devices_.back().LoadExtensions();
+    physical_devices_.back().LoadQueueFamilies();
+  }
 }
 
 DeviceList::~DeviceList()
@@ -62,19 +67,8 @@ void DeviceList::PrintDeviceExtensionProperties()
 
   for (auto physical_device : physical_devices_)
   {
-    VkResult result;
-
-    // Load device extensions
-    uint32_t extension_count;
-    result = vkEnumerateDeviceExtensionProperties(physical_device, nullptr, &extension_count, NULL);
-    std::vector<VkExtensionProperties> extensions(extension_count);
-    vkEnumerateDeviceExtensionProperties(physical_device, nullptr, &extension_count, extensions.data());
-
-    std::cout << std::endl
-      << "\tDevice " << physical_device << ": " << extension_count << " extensions" << std::endl;
-
-    for (auto extension : extensions)
-      std::cout << "\t\t|---[Device Extension]--> " << extension.extensionName << std::endl;
+    physical_device.PrintDeviceExtensionProperties();
+    std::cout << std::endl;
   }
 
   /*
@@ -191,81 +185,258 @@ void DeviceList::PrintDeviceExtensionProperties()
 
 void DeviceList::PrintDeviceQueueFamilies()
 {
-  std::cout << "Device Families" << std::endl
+  std::cout << "Device Queue Families" << std::endl
     << "================" << std::endl;
 
-  for (int i = 0; i < physical_devices_.size(); i++)
+  for (auto physical_device : physical_devices_)
   {
-    auto physical_device = physical_devices_[i];
-
-    uint32_t queue_family_property_count;
-    vkGetPhysicalDeviceQueueFamilyProperties(physical_device, &queue_family_property_count, NULL);
-    std::vector<VkQueueFamilyProperties> queue_families(queue_family_property_count);
-    vkGetPhysicalDeviceQueueFamilyProperties(physical_device, &queue_family_property_count, queue_families.data());
-
-    std::cout << std::endl
-      << "\tDevice " << physical_device << std::endl;
-
-    for (const auto& queue_family : queue_families)
-    {
-      std::cout
-        << "\t\t(Graphics " << !!(queue_family.queueFlags & VK_QUEUE_GRAPHICS_BIT) << ")" << std::endl
-        << "\t\t(Compute  " << !!(queue_family.queueFlags & VK_QUEUE_COMPUTE_BIT) << ")" << std::endl
-        << "\t\t(Transfer " << !!(queue_family.queueFlags & VK_QUEUE_TRANSFER_BIT) << ")" << std::endl
-        << "\t\t(Sparse   " << !!(queue_family.queueFlags & VK_QUEUE_SPARSE_BINDING_BIT) << ")" << std::endl
-        << "\t\tQueue count: " << queue_family.queueCount << std::endl
-        << std::endl;
-    }
+    physical_device.PrintDeviceQueueFamilies();
+    std::cout << std::endl;
   }
 }
 
-Device DeviceList::SelectGraphicsDevice(int device_index)
+PhysicalDevice DeviceList::SelectGraphicsDevice(int device_index)
 {
-  VkResult result;
-
-  Device device(instance_);
-  device.physical_device_ = physical_devices_[device_index];
-
-  // Find a graphics queue family
-  vkGetPhysicalDeviceQueueFamilyProperties(device.physical_device_, &device.queue_family_count_, NULL);
-  std::vector<VkQueueFamilyProperties> queue_families(device.queue_family_count_);
-  vkGetPhysicalDeviceQueueFamilyProperties(device.physical_device_, &device.queue_family_count_, queue_families.data());
-
-  bool graphics_queue_family_found = false;
-  for (int i = 0; i < queue_families.size(); i++)
-  {
-    const auto& queue_family = queue_families[i];
-    if (queue_family.queueFlags & VK_QUEUE_GRAPHICS_BIT)
-    {
-      graphics_queue_family_found = true;
-      device.graphics_queue_family_index_ = i;
-      break;
-    }
-  }
-
-  if (!graphics_queue_family_found)
-    throw std::runtime_error("Graphics queue not found!");
-
-  float queue_priority = 0.f;
-  queue_info_.queueCount = 1;
-  queue_info_.queueFamilyIndex = device.graphics_queue_family_index_;
-  queue_info_.pQueuePriorities = &queue_priority;
-
-  result = vkCreateDevice(device.physical_device_, &device_info_, NULL, &device.device_);
-
-  // Number of graphics queues in the graphics queue family is 1. Retrieve one graphics queue from the family.
-  vkGetDeviceQueue(device.device_, device.graphics_queue_family_index_, 0, &device.graphics_queue_.queue_);
-
-  return device;
+  return PhysicalDevice(physical_devices_[device_index]);
 }
 
-Device DeviceList::SelectBestGraphicsDevice()
+PhysicalDevice DeviceList::SelectBestGraphicsDevice()
 {
   // TODO: select the best device
   // Assuming there is only one GPU, return 0 index device
   return SelectGraphicsDevice(0);
 }
 
+
+//
+// PhysicalDevice
+//
+PhysicalDevice::PhysicalDevice() = default;
+
+PhysicalDevice::PhysicalDevice(Instance instance, VkPhysicalDevice physical_device)
+  : instance_(instance), physical_device_(physical_device)
+{
+}
+
+PhysicalDevice::~PhysicalDevice()
+{
+}
+
+void PhysicalDevice::LoadExtensions()
+{
+  VkResult result;
+
+  // Load device extensions
+  uint32_t extension_count;
+  result = vkEnumerateDeviceExtensionProperties(physical_device_, nullptr, &extension_count, NULL);
+  extensions_.resize(extension_count);
+  result = vkEnumerateDeviceExtensionProperties(physical_device_, nullptr, &extension_count, extensions_.data());
+
+  // Register names
+  for (const auto& extension_property : extensions_)
+    extension_names_.insert(extension_property.extensionName);
+}
+
+void PhysicalDevice::PrintDeviceExtensionProperties()
+{
+  std::cout << "Device " << physical_device_ << ": " << extensions_.size() << " extensions" << std::endl
+    << "==============" << std::endl;
+
+  for (const auto& extension : extensions_)
+    std::cout << "\t|---[Device Extension]--> " << extension.extensionName << std::endl;
+
+  // Layers are deprecated in Vulkan 1.1 and higher version
+  /*
+  Device Layers
+  ==============
+  NVIDIA Optimus layer
+          |---[Layer Name]--> VK_LAYER_NV_optimus
+
+  Open Broadcaster Software hook
+          |---[Layer Name]--> VK_LAYER_OBS_HOOK
+
+  Khronos Validation Layer
+          |---[Layer Name]--> VK_LAYER_KHRONOS_validation
+                  |---[Layer Extension]--> VK_EXT_validation_cache
+                  |---[Layer Extension]--> VK_EXT_debug_marker
+                  |---[Layer Extension]--> VK_EXT_tooling_info
+  */
+}
+
+void PhysicalDevice::LoadQueueFamilies()
+{
+  uint32_t queue_family_property_count;
+  vkGetPhysicalDeviceQueueFamilyProperties(physical_device_, &queue_family_property_count, NULL);
+  queue_families_.resize(queue_family_property_count);
+  vkGetPhysicalDeviceQueueFamilyProperties(physical_device_, &queue_family_property_count, queue_families_.data());
+}
+
+void PhysicalDevice::PrintDeviceQueueFamilies()
+{
+  std::cout << "Device " << physical_device_ << ": " << queue_families_.size() << " families" << std::endl;
+
+  for (const auto& queue_family : queue_families_)
+  {
+    std::cout
+      << "\t(Graphics " << !!(queue_family.queueFlags & VK_QUEUE_GRAPHICS_BIT) << ")" << std::endl
+      << "\t(Compute  " << !!(queue_family.queueFlags & VK_QUEUE_COMPUTE_BIT) << ")" << std::endl
+      << "\t(Transfer " << !!(queue_family.queueFlags & VK_QUEUE_TRANSFER_BIT) << ")" << std::endl
+      << "\t(Sparse   " << !!(queue_family.queueFlags & VK_QUEUE_SPARSE_BINDING_BIT) << ")" << std::endl
+      << "\tQueue count: " << queue_family.queueCount << std::endl
+      << std::endl;
+  }
+}
+
+bool PhysicalDevice::IsSupportedExtension(const std::string& extension_name)
+{
+  return extension_names_.find(extension_name) != extension_names_.cend();
+}
+
+
+//
+// DeviceCreator
+//
+DeviceCreator::DeviceCreator(PhysicalDevice physical_device)
+  : physical_device_(physical_device)
+{
+  create_info_.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+  create_info_.pNext = NULL;
+
+  create_info_.flags = 0;
+  create_info_.pEnabledFeatures = &physical_device_features_;
+
+  queue_family_count_.resize(physical_device.QueueFamilies().size(), 0);
+}
+
+DeviceCreator::~DeviceCreator()
+{
+}
+
+void DeviceCreator::AddExtension(DeviceExtension extension)
+{
+  AddExtension(LayerExtension::ExtensionName(extension));
+}
+
+void DeviceCreator::AddExtension(const std::string& extension_name)
+{
+  if (physical_device_.IsSupportedExtension(extension_name))
+  {
+    // Check duplication
+    bool found = false;
+    for (const auto& extension : extensions_)
+    {
+      if (extension == extension_name)
+      {
+        found = true;
+        break;
+      }
+    }
+
+    if (!found)
+      extensions_.push_back(extension_name);
+  }
+  else
+    throw std::runtime_error("Unsupported extension: \"" + extension_name + "\"!");
+}
+
+void DeviceCreator::AddGraphicsQueue()
+{
+  const auto& queue_families = physical_device_.QueueFamilies();
+
+  bool found = false;
+  for (int i = 0; i < queue_families.size(); i++)
+  {
+    const auto& queue_family = queue_families[i];
+
+    if ((queue_family.queueFlags & VK_QUEUE_GRAPHICS_BIT) &&
+      queue_family_count_[i] < queue_family.queueCount)
+    {
+      found = true;
+      queue_family_count_[i]++;
+      break;
+    }
+  }
+
+  if (!found)
+    throw std::runtime_error("Cannot add a graphics queue any more!");
+}
+
+Device DeviceCreator::Create()
+{
+  int queue_max_count = 0;
+  for (int i = 0; i < queue_family_count_.size(); i++)
+  {
+    if (queue_max_count < queue_family_count_[i])
+      queue_max_count = queue_family_count_[i];
+  }
+
+  // Populate queue create info
+  std::vector<VkDeviceQueueCreateInfo> queue_infos;
+  std::vector<float> queue_priority(queue_max_count, 1.f);
+  if (queue_max_count)
+  {
+    for (int i = 0; i < queue_family_count_.size(); i++)
+    {
+      if (queue_family_count_[i] > 0)
+      {
+        queue_infos.emplace_back();
+        auto& queue_info = queue_infos.back();
+
+        queue_info.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+        queue_info.pNext = NULL;
+        queue_info.flags = 0;
+        queue_info.queueFamilyIndex = i;
+        queue_info.queueCount = queue_family_count_[i];
+        queue_info.pQueuePriorities = queue_priority.data();
+      }
+    }
+  }
+
+  // Queue create info
+  if (!queue_infos.empty())
+  {
+    create_info_.queueCreateInfoCount = queue_infos.size();
+    create_info_.pQueueCreateInfos = queue_infos.data();
+  }
+  else
+  {
+    create_info_.queueCreateInfoCount = 0;
+    create_info_.pQueueCreateInfos = NULL;
+  }
+
+  // Device layers are deprecated
+  create_info_.enabledLayerCount = 0;
+  create_info_.ppEnabledLayerNames = NULL;
+
+  std::vector<const char*> extension_names;
+  for (const auto& extension : extensions_)
+    extension_names.push_back(extension.c_str());
+
+  create_info_.enabledExtensionCount = extension_names.size();
+  create_info_.ppEnabledExtensionNames = extension_names.data();
+
+  Device device;
+
+  VkResult result;
+  result = vkCreateDevice(physical_device_, &create_info_, NULL, &device.device_);
+
+  // Retrieve queue handles
+  for (int i = 0; i < queue_family_count_.size(); i++)
+  {
+    for (int j = 0; j < queue_family_count_[i]; j++)
+    {
+      device.queues_.emplace_back();
+      vkGetDeviceQueue(device, i, j, &device.queues_.back().queue_);
+    }
+  }
+
+  return device;
+}
+
+
+//
+// Device
+//
 Device::Device() = default;
 
 Device::Device(Instance instance)
@@ -282,7 +453,6 @@ void Device::Destroy()
   if (device_)
   {
     vkDestroyDevice(device_, NULL);
-    physical_device_ = NULL;
     device_ = NULL;
   }
 }
@@ -290,14 +460,6 @@ void Device::Destroy()
 void Device::WaitIdle()
 {
   vkDeviceWaitIdle(device_);
-}
-
-Queue::Queue()
-{
-}
-
-Queue::~Queue()
-{
 }
 }
 }

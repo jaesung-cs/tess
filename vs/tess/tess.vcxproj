@@ -30,6 +30,7 @@
     <ClInclude Include="..\..\src\tess\vk\vk_exception.h" />
     <ClInclude Include="..\..\src\tess\vk\vk_instance.h" />
     <ClInclude Include="..\..\src\tess\vk\vk_layer_extension.h" />
+    <ClInclude Include="..\..\src\tess\vk\vk_queue.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\lib\tinyxml2\tinyxml2.cpp" />
@@ -39,6 +40,7 @@
     <ClCompile Include="..\..\src\tess\vk\vk_device.cc" />
     <ClCompile Include="..\..\src\tess\vk\vk_instance.cc" />
     <ClCompile Include="..\..\src\tess\vk\vk_layer_extension.cc" />
+    <ClCompile Include="..\..\src\tess\vk\vk_queue.cc" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\src\shader\compile.bat" />
