@@ -38,8 +38,8 @@ void SwapchainCreator::LoadDeviceSwapchainProperties(PhysicalDevice physical_dev
   vkGetPhysicalDeviceSurfaceFormatsKHR(physical_device, surface_, &format_count, NULL);
   if (format_count != 0)
   {
-    properties_.formats.resize(format_count);
-    vkGetPhysicalDeviceSurfaceFormatsKHR(physical_device, surface_, &format_count, properties_.formats.data());
+    properties_.surface_formats.resize(format_count);
+    vkGetPhysicalDeviceSurfaceFormatsKHR(physical_device, surface_, &format_count, properties_.surface_formats.data());
   }
   else
     throw std::runtime_error("No available surface formats for swapchain!");
@@ -68,7 +68,7 @@ void SwapchainCreator::PrintSwapchainProperties()
     << "Surface formats" << std::endl
     << "=======================" << std::endl;
 
-  for (const auto& format : properties_.formats)
+  for (const auto& format : properties_.surface_formats)
     std::cout << format.format << " " << format.colorSpace << std::endl;
 }
 
@@ -80,11 +80,11 @@ void SwapchainCreator::ChooseCurrentExtent()
 
 void SwapchainCreator::ChooseDefaultFormat()
 {
-  auto& format_to_use = properties_.formats[0];
-  for (const auto& format : properties_.formats)
+  auto& format_to_use = properties_.surface_formats[0];
+  for (const auto& surface_format : properties_.surface_formats)
   {
-    if (format.format == VK_FORMAT_B8G8R8A8_SRGB && format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
-      format_to_use = format;
+    if (surface_format.format == VK_FORMAT_B8G8R8A8_SRGB && surface_format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
+      format_to_use = surface_format;
   }
 
   create_info_.imageFormat = format_to_use.format;
@@ -126,6 +126,12 @@ Swapchain SwapchainCreator::Create()
   swapchain.images_.resize(image_count);
   vkGetSwapchainImagesKHR(device_, swapchain, &image_count, swapchain.images_.data());
 
+  // Fill swapchain info
+  swapchain.image_format_ = create_info_.imageFormat;
+
+  // Create image views
+  swapchain.CreateImageViews();
+
   return swapchain;
 }
 
@@ -150,8 +156,24 @@ void Swapchain::Destroy()
 {
   if (swapchain_)
   {
+    for (auto& image_view : image_views_)
+      image_view.Destroy();
+
     vkDestroySwapchainKHR(device_, swapchain_, NULL);
     swapchain_ = NULL;
+  }
+}
+
+void Swapchain::CreateImageViews()
+{
+  for (auto image : images_)
+  {
+    ImageViewCreator image_view_creator{ device_, image };
+    image_view_creator.SetImageFormat(image_format_);
+    image_view_creator.SwizzleIdentity();
+    image_view_creator.DisableMipmap();
+
+    image_views_.emplace_back(image_view_creator.Create());
   }
 }
 }

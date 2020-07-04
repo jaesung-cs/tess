@@ -5,6 +5,8 @@
 
 #include "tess/vk/vk_device.h"
 #include "tess/vk/vk_surface.h"
+#include "tess/vk/vk_image.h"
+#include "tess/vk/vk_image_view.h"
 
 namespace tess
 {
@@ -45,7 +47,7 @@ private:
   struct SwapchainProperties
   {
     VkSurfaceCapabilitiesKHR capabilities;
-    std::vector<VkSurfaceFormatKHR> formats;
+    std::vector<VkSurfaceFormatKHR> surface_formats;
     std::vector<VkPresentModeKHR> present_modes;
   };
 
@@ -73,11 +75,17 @@ public:
   operator VkSwapchainKHR() { return swapchain_; }
 
 private:
+  void CreateImageViews();
+
   Device device_;
 
   VkSwapchainKHR swapchain_ = NULL;
 
+  // Swapchain info
+  VkFormat image_format_;
+
   std::vector<VkImage> images_;
+  std::vector<ImageView> image_views_;
 };
 }
 }

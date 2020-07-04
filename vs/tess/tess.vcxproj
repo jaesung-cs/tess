@@ -28,6 +28,8 @@
     <ClInclude Include="..\..\src\tess\vk\vk_command_buffer.h" />
     <ClInclude Include="..\..\src\tess\vk\vk_device.h" />
     <ClInclude Include="..\..\src\tess\vk\vk_exception.h" />
+    <ClInclude Include="..\..\src\tess\vk\vk_image.h" />
+    <ClInclude Include="..\..\src\tess\vk\vk_image_view.h" />
     <ClInclude Include="..\..\src\tess\vk\vk_instance.h" />
     <ClInclude Include="..\..\src\tess\vk\vk_layer_extension.h" />
     <ClInclude Include="..\..\src\tess\vk\vk_queue.h" />
@@ -40,6 +42,8 @@
     <ClCompile Include="..\..\src\tess\main.cc" />
     <ClCompile Include="..\..\src\tess\vk\vk_command_buffer.cc" />
     <ClCompile Include="..\..\src\tess\vk\vk_device.cc" />
+    <ClCompile Include="..\..\src\tess\vk\vk_image.cc" />
+    <ClCompile Include="..\..\src\tess\vk\vk_image_view.cc" />
     <ClCompile Include="..\..\src\tess\vk\vk_instance.cc" />
     <ClCompile Include="..\..\src\tess\vk\vk_layer_extension.cc" />
     <ClCompile Include="..\..\src\tess\vk\vk_queue.cc" />
