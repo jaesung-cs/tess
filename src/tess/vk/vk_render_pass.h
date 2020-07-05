@@ -46,7 +46,7 @@ public:
 
   void Destroy();
 
-  operator VkRenderPass() { return render_pass_; }
+  operator VkRenderPass() const { return render_pass_; }
 
 private:
   Device device_;

@@ -249,10 +249,23 @@ void Engine::InitializeVulkan()
   pipeline_creator.SetPipelineLayout(pipeline_layout_);
   pipeline_creator.SetRenderPass(render_pass_);
   pipeline_ = pipeline_creator.Create();
+
+  // Create framebuffers for each swapchain image
+  for (const auto& image_view : swapchain_.ImageViews())
+  {
+    vk::FramebufferCreator framebuffer_creator{ device_ };
+    framebuffer_creator.AddAttachment(image_view);
+    framebuffer_creator.SetRenderPass(render_pass_);
+    framebuffer_creator.SetSize(width_, height_);
+    swapchain_framebuffers_.push_back(framebuffer_creator.Create());
+  }
 }
 
 void Engine::Cleanup()
 {
+  for (auto& swapchain_framebuffer : swapchain_framebuffers_)
+    swapchain_framebuffer.Destroy();
+
   pipeline_.Destroy();
 
   pipeline_layout_.Destroy();

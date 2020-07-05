@@ -46,7 +46,7 @@ public:
 
   void Destroy();
 
-  operator VkImageView() { return image_view_; }
+  operator VkImageView() const { return image_view_; }
 
 private:
   Device device_;

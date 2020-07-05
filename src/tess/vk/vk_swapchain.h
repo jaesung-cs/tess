@@ -75,6 +75,7 @@ public:
   operator VkSwapchainKHR() { return swapchain_; }
 
   auto ImageFormat() const { return image_format_; }
+  const auto& ImageViews() const { return image_views_; }
 
 private:
   void CreateImageViews();
