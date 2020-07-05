@@ -176,5 +176,15 @@ void Swapchain::CreateImageViews()
     image_views_.emplace_back(image_view_creator.Create());
   }
 }
+
+uint32_t Swapchain::AcquireNextImage(Semaphore semaphore)
+{
+  uint32_t image_index;
+
+  if (VkResult result = vkAcquireNextImageKHR(device_, swapchain_, UINT64_MAX, semaphore, VK_NULL_HANDLE, &image_index))
+    throw Exception("Failed to acquire next image!", result);
+
+  return image_index;
+}
 }
 }

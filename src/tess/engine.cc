@@ -9,6 +9,8 @@
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
+#include "tess/vk/vk_exception.h"
+
 namespace tess
 {
 // GLFW Callback functions
@@ -78,6 +80,10 @@ Engine::~Engine()
 
 void Engine::Resize(int width, int height)
 {
+  width_ = width;
+  height_ = height;
+
+  framebuffer_resized_ = true;
 }
 
 void Engine::MouseButton(int button, int action, int mods, double x, double y)
@@ -314,7 +320,20 @@ void Engine::DrawFrame()
   in_flight_fences_[current_frame_].Wait();
 
   uint32_t image_index;
-  vkAcquireNextImageKHR(device_, swapchain_, UINT64_MAX, image_available_semaphore_[current_frame_], VK_NULL_HANDLE, &image_index);
+  try
+  {
+    image_index = swapchain_.AcquireNextImage(image_available_semaphore_[current_frame_]);
+  }
+  catch (const vk::Exception& exception)
+  {
+    if (exception.Result() == VK_ERROR_OUT_OF_DATE_KHR)
+    {
+      RecreateSwapchain();
+      return;
+    }
+    else if (exception.Result() != VK_SUBOPTIMAL_KHR)
+      throw exception;
+  }
 
   // Check if a previous frame is using this image (i.e. there is its fence to wait on)
   if (images_in_flight_fences_[image_index].IsValid())
@@ -330,20 +349,125 @@ void Engine::DrawFrame()
   graphics_queue_.AddSubmitCommandBuffer(swapchain_command_buffers_[image_index]);
   graphics_queue_.Submit(in_flight_fences_[current_frame_]);
 
-  graphics_queue_.WaitIdle();
-
   present_queue_.AddPresentWaitSemaphore(render_finished_semaphore_[current_frame_]);
   present_queue_.SetPresentSwapchain(swapchain_);
   present_queue_.SetPresentImageIndex(image_index);
-  present_queue_.Present();
 
-  present_queue_.WaitIdle();
+  try
+  {
+    present_queue_.Present();
+  }
+  catch (const vk::Exception& exception)
+  {
+    if (exception.Result() == VK_ERROR_OUT_OF_DATE_KHR || exception.Result() == VK_SUBOPTIMAL_KHR || framebuffer_resized_)
+    {
+      framebuffer_resized_ = false;
+      RecreateSwapchain();
+    }
+    else
+      throw exception;
+  }
 
   current_frame_ = (current_frame_ + 1) % MAX_FRAMES_IN_FLIGHT;
 }
 
+void Engine::RecreateSwapchain()
+{
+  device_.WaitIdle();
+
+  // When window is minimized, width and height is set to 0 in Resize function
+  if (width_ == 0 || height_ == 0)
+    return;
+
+  CleanupSwapchain();
+
+  // TODO: code snippet used in initialization
+  // Create swapchain
+  vk::SwapchainCreator swapchain_creator{ device_, surface_ };
+  swapchain_creator.LoadDeviceSwapchainProperties(physical_device_);
+  swapchain_creator.ChooseCurrentExtent();
+  swapchain_creator.ChooseDefaultFormat();
+  swapchain_creator.ChooseFifoPresentMode();
+  swapchain_creator.EnableTrippleBuffering();
+  swapchain_creator.QueueFamilyExclusiveMode();
+  swapchain_ = swapchain_creator.Create();
+
+  // Create render pass
+  vk::RenderPassCreator render_pass_creator{ device_ };
+  render_pass_creator.SetColorAttachmentImageFormat(swapchain_.ImageFormat());
+  render_pass_ = render_pass_creator.Create();
+
+  // Create pipeline layout
+  vk::PipelineLayoutCreator pipeline_layout_creator{ device_ };
+  pipeline_layout_ = pipeline_layout_creator.Create();
+
+  // Create pipeline
+  vk::GraphicsPipelineCreator pipeline_creator{ device_ };
+  pipeline_creator.AddVertexShaderStage(vertex_shader_);
+  pipeline_creator.AddFragmentShaderStage(fragment_shader_);
+  pipeline_creator.SetViewport(width_, height_);
+  pipeline_creator.SetPipelineLayout(pipeline_layout_);
+  pipeline_creator.SetRenderPass(render_pass_);
+  pipeline_ = pipeline_creator.Create();
+
+  // Create framebuffers for each swapchain image
+  for (const auto& image_view : swapchain_.ImageViews())
+  {
+    vk::FramebufferCreator framebuffer_creator{ device_ };
+    framebuffer_creator.AddAttachment(image_view);
+    framebuffer_creator.SetRenderPass(render_pass_);
+    framebuffer_creator.SetSize(width_, height_);
+    swapchain_framebuffers_.push_back(framebuffer_creator.Create());
+  }
+
+  // Allocate command buffer
+  vk::CommandBufferAllocator command_buffer_allocator{ device_, command_pool_ };
+  swapchain_command_buffers_ = command_buffer_allocator.AllocateBuffers(swapchain_framebuffers_.size());
+
+  // Record drawing commands
+  for (int i = 0; i < swapchain_command_buffers_.size(); i++)
+  {
+    auto& swapchain_command_buffer = swapchain_command_buffers_[i];
+    const auto& swapchain_framebuffer = swapchain_framebuffers_[i];
+
+    swapchain_command_buffer.Begin();
+
+    swapchain_command_buffer.SetClearColor(0.f, 0.f, 0.f, 1.f);
+    swapchain_command_buffer.SetRenderArea(0, 0, width_, height_);
+    swapchain_command_buffer.SetFramebuffer(swapchain_framebuffer);
+    swapchain_command_buffer.CmdBeginRenderPass(render_pass_);
+
+    swapchain_command_buffer.CmdBindPipeline(pipeline_);
+
+    swapchain_command_buffer.CmdDraw(3, 1);
+
+    swapchain_command_buffer.CmdEndRenderPass();
+
+    swapchain_command_buffer.End();
+  }
+}
+
+void Engine::CleanupSwapchain()
+{
+  for (auto& swapchain_framebuffer : swapchain_framebuffers_)
+    swapchain_framebuffer.Destroy();
+  swapchain_framebuffers_.clear();
+
+  for (auto& command_buffer : swapchain_command_buffers_)
+    command_buffer.Free();
+  swapchain_command_buffers_.clear();
+
+  pipeline_.Destroy();
+  pipeline_layout_.Destroy();
+  render_pass_.Destroy();
+
+  swapchain_.Destroy();
+}
+
 void Engine::Cleanup()
 {
+  CleanupSwapchain();
+
   for (auto& semaphore : image_available_semaphore_)
     semaphore.Destroy();
   for (auto& semaphore : render_finished_semaphore_)
@@ -354,22 +478,11 @@ void Engine::Cleanup()
 
   command_pool_.Destroy();
 
-  for (auto& swapchain_framebuffer : swapchain_framebuffers_)
-    swapchain_framebuffer.Destroy();
-
-  pipeline_.Destroy();
-
-  pipeline_layout_.Destroy();
-
-  render_pass_.Destroy();
-
   vertex_shader_.Destroy();
   fragment_shader_.Destroy();
 
   buffer_.Destroy();
   device_memory_.Free();
-
-  swapchain_.Destroy();
 
   device_.Destroy();
 

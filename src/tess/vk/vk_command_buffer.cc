@@ -67,7 +67,7 @@ void CommandPool::Destroy()
 // CommandBufferAllocator
 //
 CommandBufferAllocator::CommandBufferAllocator(Device device, CommandPool command_pool)
-  : device_(device)
+  : device_(device), command_pool_(command_pool)
 {
   allocate_info_.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
   allocate_info_.commandPool = command_pool;
@@ -91,7 +91,7 @@ std::vector<CommandBuffer> CommandBufferAllocator::AllocateBuffers(int num_comma
 
   for (const auto& command_buffer_handle : command_buffer_handles)
   {
-    command_buffers.emplace_back();
+    command_buffers.emplace_back(device_, command_pool_);
     command_buffers.back().command_buffer_ = command_buffer_handle;
   }
 
@@ -104,6 +104,11 @@ std::vector<CommandBuffer> CommandBufferAllocator::AllocateBuffers(int num_comma
 //
 CommandBuffer::CommandBuffer()
 {
+}
+
+CommandBuffer::CommandBuffer(Device device, CommandPool command_pool)
+  : device_(device), command_pool_(command_pool)
+{
   begin_info_.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 
   render_pass_info_.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -113,6 +118,15 @@ CommandBuffer::CommandBuffer()
 
 CommandBuffer::~CommandBuffer()
 {
+}
+
+void CommandBuffer::Free()
+{
+  if (command_buffer_)
+  {
+    vkFreeCommandBuffers(device_, command_pool_, 1, &command_buffer_);
+    command_buffer_ = NULL;
+  }
 }
 
 void CommandBuffer::Begin()

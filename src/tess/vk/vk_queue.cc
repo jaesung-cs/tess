@@ -51,14 +51,16 @@ void Queue::Submit()
   submit_info_.commandBufferCount = command_buffers_.size();
   submit_info_.pCommandBuffers = command_buffers_.data();
 
-  if (VkResult result = vkQueueSubmit(queue_, 1, &submit_info_, VK_NULL_HANDLE))
-    throw Exception("Failed to submit command buffer!", result);
+  VkResult result = vkQueueSubmit(queue_, 1, &submit_info_, VK_NULL_HANDLE);
 
   // Clear intermediate data
   wait_semaphores_.clear();
   wait_stages_.clear();
   signal_semaphores_.clear();
   command_buffers_.clear();
+
+  if (result)
+    throw Exception("Failed to submit command buffer!", result);
 }
 
 void Queue::Submit(Fence fence)
@@ -74,14 +76,16 @@ void Queue::Submit(Fence fence)
   submit_info_.commandBufferCount = command_buffers_.size();
   submit_info_.pCommandBuffers = command_buffers_.data();
 
-  if (VkResult result = vkQueueSubmit(queue_, 1, &submit_info_, fence))
-    throw Exception("Failed to submit command buffer!", result);
+  VkResult result = vkQueueSubmit(queue_, 1, &submit_info_, fence);
 
   // Clear intermediate data
   wait_semaphores_.clear();
   wait_stages_.clear();
   signal_semaphores_.clear();
   command_buffers_.clear();
+
+  if (result)
+    throw Exception("Failed to submit command buffer!", result);
 }
 
 void Queue::AddPresentWaitSemaphore(Semaphore semaphore)
@@ -108,11 +112,13 @@ void Queue::Present()
   present_info_.pSwapchains = &swapchain_;
   present_info_.pImageIndices = &image_index_;
 
-  if (VkResult result = vkQueuePresentKHR(queue_, &present_info_))
-    throw Exception("Failed to present!", result);
+  VkResult result = vkQueuePresentKHR(queue_, &present_info_);
 
   // Clear intermediate data
   wait_semaphores_.clear();
+
+  if (result)
+    throw Exception("Failed to present!", result);
 }
 
 void Queue::WaitIdle()

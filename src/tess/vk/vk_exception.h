@@ -31,6 +31,11 @@ public:
     return what_with_error_code_.c_str();
   }
 
+  auto Result() const
+  {
+    return result_;
+  }
+
 private:
   std::string what_;
   VkResult result_ = VK_SUCCESS;

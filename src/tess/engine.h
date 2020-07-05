@@ -54,6 +54,9 @@ private:
 
   void DrawFrame();
 
+  void RecreateSwapchain();
+
+  void CleanupSwapchain();
   void Cleanup();
 
   GLFWwindow* window_ = nullptr;
@@ -97,6 +100,8 @@ private:
   std::vector<vk::Semaphore> render_finished_semaphore_;
   std::vector<vk::Fence> in_flight_fences_;
   std::vector<vk::Fence> images_in_flight_fences_;
+
+  bool framebuffer_resized_ = false;
 
   // Validation layer for debug
 #ifdef NDEBUG

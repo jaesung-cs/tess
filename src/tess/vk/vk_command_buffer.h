@@ -71,6 +71,7 @@ public:
 
 private:
   Device device_;
+  CommandPool command_pool_;
 
   VkCommandBufferAllocateInfo allocate_info_{};
 };
@@ -82,9 +83,11 @@ class CommandBuffer
 public:
   CommandBuffer();
 
+  CommandBuffer(Device device, CommandPool command_pool);
+
   ~CommandBuffer();
 
-  // Command buffers will be automatically freed when their command pool is destroyed, so we don't need an explicit cleanup.
+  void Free();
 
   operator VkCommandBuffer () const { return command_buffer_; }
 
@@ -105,6 +108,7 @@ public:
 
 private:
   Device device_;
+  CommandPool command_pool_;
 
   VkCommandBufferBeginInfo begin_info_{};
 

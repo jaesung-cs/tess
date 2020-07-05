@@ -56,7 +56,8 @@ public:
   operator VkInstance () { return instance_; }
 
 private:
-  VkInstance instance_ = nullptr;
+  VkInstance instance_ = NULL;
+  VkDebugUtilsMessengerEXT debug_messenger_ = NULL;
 };
 }
 }

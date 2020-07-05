@@ -164,15 +164,13 @@ Instance InstanceCreator::Create()
   instance_info_.ppEnabledExtensionNames = extensions.data();
 
   // Setup debug messenger
+  VkDebugUtilsMessengerCreateInfoEXT create_info{};
   if (enable_validation_layers_)
   {
-    VkDebugUtilsMessengerCreateInfoEXT create_info{};
-    create_info = {};
     create_info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
     create_info.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
     create_info.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
     create_info.pfnUserCallback = debug_callback;
-    create_info.pUserData = instance; // Optional
 
     instance_info_.pNext = &create_info;
   }
@@ -182,7 +180,14 @@ Instance InstanceCreator::Create()
   // Create instance
   auto result = vkCreateInstance(&instance_info_, NULL, &instance.instance_);
   if (result != VK_SUCCESS)
-    throw Exception("Error creating instance", result);
+    throw Exception("Failed to create instance!", result);
+
+  // Create debug messenger
+  if (enable_validation_layers_)
+  {
+    if (VkResult result = CreateDebugUtilsMessengerEXT(instance, &create_info, nullptr, &instance.debug_messenger_))
+      throw Exception("Failed to set up debug messenger!", result);
+  }
 
   return instance;
 }
@@ -199,6 +204,9 @@ void Instance::Destroy()
 {
   if (instance_)
   {
+    if (debug_messenger_)
+      DestroyDebugUtilsMessengerEXT(instance_, debug_messenger_, NULL);
+
     vkDestroyInstance(instance_, NULL);
     instance_ = nullptr;
   }
