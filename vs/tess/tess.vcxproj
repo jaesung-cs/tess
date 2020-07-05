@@ -35,6 +35,7 @@
     <ClInclude Include="..\..\src\tess\vk\vk_instance.h" />
     <ClInclude Include="..\..\src\tess\vk\vk_layer_extension.h" />
     <ClInclude Include="..\..\src\tess\vk\vk_queue.h" />
+    <ClInclude Include="..\..\src\tess\vk\vk_render_pass.h" />
     <ClInclude Include="..\..\src\tess\vk\vk_shader_module.h" />
     <ClInclude Include="..\..\src\tess\vk\vk_surface.h" />
     <ClInclude Include="..\..\src\tess\vk\vk_swapchain.h" />
@@ -52,6 +53,7 @@
     <ClCompile Include="..\..\src\tess\vk\vk_instance.cc" />
     <ClCompile Include="..\..\src\tess\vk\vk_layer_extension.cc" />
     <ClCompile Include="..\..\src\tess\vk\vk_queue.cc" />
+    <ClCompile Include="..\..\src\tess\vk\vk_render_pass.cc" />
     <ClCompile Include="..\..\src\tess\vk\vk_shader_module.cc" />
     <ClCompile Include="..\..\src\tess\vk\vk_surface.cc" />
     <ClCompile Include="..\..\src\tess\vk\vk_swapchain.cc" />

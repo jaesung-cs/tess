@@ -231,10 +231,17 @@ void Engine::InitializeVulkan()
   vertex_shader_ = shader_module_creator.Create();
   shader_module_creator.LoadCompiledSpirVFile("..\\src\\shader\\frag.spv");
   fragment_shader_ = shader_module_creator.Create();
+
+  // Create render pass
+  vk::RenderPassCreator render_pass_creator{ device_ };
+  render_pass_creator.SetColorAttachmentImageFormat(swapchain_.ImageFormat());
+  render_pass_ = render_pass_creator.Create();
 }
 
 void Engine::Cleanup()
 {
+  render_pass_.Destroy();
+
   vertex_shader_.Destroy();
   fragment_shader_.Destroy();
 
