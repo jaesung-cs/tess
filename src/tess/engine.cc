@@ -259,10 +259,44 @@ void Engine::InitializeVulkan()
     framebuffer_creator.SetSize(width_, height_);
     swapchain_framebuffers_.push_back(framebuffer_creator.Create());
   }
+
+  // Create command pool
+  vk::CommandPoolCreator command_pool_creator{ device_ };
+  // TODO: find a graphics queue family to which command buffers will be submitted
+  command_pool_creator.SetQueueFamilyIndex(0); // Graphics queue family index
+  command_pool_ = command_pool_creator.Create();
+
+  // Allocate command buffer
+  vk::CommandBufferAllocator command_buffer_allocator{ device_, command_pool_ };
+  swapchain_command_buffers_ = command_buffer_allocator.AllocateBuffers(swapchain_framebuffers_.size());
+
+  // Record drawing commands
+  for (int i = 0; i < swapchain_command_buffers_.size(); i++)
+  {
+    auto& swapchain_command_buffer = swapchain_command_buffers_[i];
+    const auto& swapchain_framebuffer = swapchain_framebuffers_[i];
+
+    swapchain_command_buffer.Begin();
+
+    swapchain_command_buffer.SetClearColor(0.f, 0.f, 0.f, 1.f);
+    swapchain_command_buffer.SetRenderArea(0, 0, width_, height_);
+    swapchain_command_buffer.SetFramebuffer(swapchain_framebuffer);
+    swapchain_command_buffer.CmdBeginRenderPass(render_pass_);
+
+    swapchain_command_buffer.CmdBindPipeline(pipeline_);
+
+    swapchain_command_buffer.CmdDraw(3, 1);
+
+    swapchain_command_buffer.CmdEndRenderPass();
+
+    swapchain_command_buffer.End();
+  }
 }
 
 void Engine::Cleanup()
 {
+  command_pool_.Destroy();
+
   for (auto& swapchain_framebuffer : swapchain_framebuffers_)
     swapchain_framebuffer.Destroy();
 

@@ -19,6 +19,7 @@
 #include "tess/vk/vk_pipeline_layout.h"
 #include "tess/vk/vk_pipeline.h"
 #include "tess/vk/vk_framebuffer.h"
+#include "tess/vk/vk_command_buffer.h"
 
 struct GLFWwindow;
 
@@ -79,6 +80,10 @@ private:
   vk::Pipeline pipeline_;
 
   std::vector<vk::Framebuffer> swapchain_framebuffers_;
+
+  vk::CommandPool command_pool_;
+
+  std::vector<vk::CommandBuffer> swapchain_command_buffers_;
 
   // Validation layer for debug
 #ifdef NDEBUG

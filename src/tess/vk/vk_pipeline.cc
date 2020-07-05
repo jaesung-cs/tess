@@ -19,7 +19,9 @@ GraphicsPipelineCreator::GraphicsPipelineCreator(Device device)
   create_info_.pRasterizationState = &rasterizer_;
   create_info_.pMultisampleState = &multisampling_;
   create_info_.pColorBlendState = &color_blending_;
-  create_info_.pDynamicState = &dynamic_state_;
+
+  // TODO: enable viewport dynamic state
+  //create_info_.pDynamicState = &dynamic_state_;
 
   create_info_.subpass = 0;
 
@@ -75,7 +77,7 @@ GraphicsPipelineCreator::GraphicsPipelineCreator(Device device)
   dynamic_states_.push_back(VK_DYNAMIC_STATE_LINE_WIDTH);
 
   dynamic_state_.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
-  dynamic_state_.dynamicStateCount = 2;
+  dynamic_state_.dynamicStateCount = dynamic_states_.size();
   dynamic_state_.pDynamicStates = dynamic_states_.data();
 }
 
