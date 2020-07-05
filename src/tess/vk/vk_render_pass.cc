@@ -34,6 +34,16 @@ RenderPassCreator::RenderPassCreator(Device device)
   subpass_.colorAttachmentCount = 1;
   subpass_.pColorAttachments = &color_attachment_reference_;
 
+  // Dependency
+  dependency_.srcSubpass = VK_SUBPASS_EXTERNAL;
+  dependency_.dstSubpass = 0;
+
+  dependency_.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+  dependency_.srcAccessMask = 0;
+
+  dependency_.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+  dependency_.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+
   // Render pass
   create_info_.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
   create_info_.pNext = NULL;
@@ -43,6 +53,9 @@ RenderPassCreator::RenderPassCreator(Device device)
 
   create_info_.subpassCount = 1;
   create_info_.pSubpasses = &subpass_;
+
+  create_info_.dependencyCount = 1;
+  create_info_.pDependencies = &dependency_;
 }
 
 RenderPassCreator::~RenderPassCreator()

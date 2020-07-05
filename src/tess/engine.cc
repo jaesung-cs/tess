@@ -303,6 +303,22 @@ void Engine::InitializeVulkan()
 
 void Engine::DrawFrame()
 {
+  uint32_t image_index;
+  vkAcquireNextImageKHR(device_, swapchain_, UINT64_MAX, image_available_semaphore_, VK_NULL_HANDLE, &image_index);
+
+  graphics_queue_.AddSubmitColorAttachmentOutputWaitStage(image_available_semaphore_);
+  graphics_queue_.AddSubmitSignalSemaphores(render_finished_semaphore_);
+  graphics_queue_.AddSubmitCommandBuffer(swapchain_command_buffers_[image_index]);
+  graphics_queue_.Submit();
+
+  graphics_queue_.WaitIdle();
+
+  present_queue_.AddPresentWaitSemaphore(render_finished_semaphore_);
+  present_queue_.SetPresentSwapchain(swapchain_);
+  present_queue_.SetPresentImageIndex(image_index);
+  present_queue_.Present();
+
+  present_queue_.WaitIdle();
 }
 
 void Engine::Cleanup()

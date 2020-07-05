@@ -86,6 +86,8 @@ public:
 
   // Command buffers will be automatically freed when their command pool is destroyed, so we don't need an explicit cleanup.
 
+  operator VkCommandBuffer () const { return command_buffer_; }
+
   void Begin();
 
   void SetFramebuffer(Framebuffer framebuffer);

@@ -30,6 +30,8 @@ private:
   VkAttachmentDescription color_attachment_{};
   VkAttachmentReference color_attachment_reference_{};
   VkSubpassDescription subpass_{};
+  VkSubpassDependency dependency_{};
+
   VkRenderPassCreateInfo create_info_{};
 };
 
