@@ -240,10 +240,21 @@ void Engine::InitializeVulkan()
   // Create pipeline layout
   vk::PipelineLayoutCreator pipeline_layout_creator{ device_ };
   pipeline_layout_ = pipeline_layout_creator.Create();
+
+  // Create pipeline
+  vk::GraphicsPipelineCreator pipeline_creator{ device_ };
+  pipeline_creator.AddVertexShaderStage(vertex_shader_);
+  pipeline_creator.AddFragmentShaderStage(fragment_shader_);
+  pipeline_creator.SetViewport(width_, height_);
+  pipeline_creator.SetPipelineLayout(pipeline_layout_);
+  pipeline_creator.SetRenderPass(render_pass_);
+  pipeline_ = pipeline_creator.Create();
 }
 
 void Engine::Cleanup()
 {
+  pipeline_.Destroy();
+
   pipeline_layout_.Destroy();
 
   render_pass_.Destroy();

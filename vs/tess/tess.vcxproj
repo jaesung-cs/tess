@@ -34,6 +34,7 @@
     <ClInclude Include="..\..\src\tess\vk\vk_image_view.h" />
     <ClInclude Include="..\..\src\tess\vk\vk_instance.h" />
     <ClInclude Include="..\..\src\tess\vk\vk_layer_extension.h" />
+    <ClInclude Include="..\..\src\tess\vk\vk_pipeline.h" />
     <ClInclude Include="..\..\src\tess\vk\vk_pipeline_layout.h" />
     <ClInclude Include="..\..\src\tess\vk\vk_queue.h" />
     <ClInclude Include="..\..\src\tess\vk\vk_render_pass.h" />
@@ -53,6 +54,7 @@
     <ClCompile Include="..\..\src\tess\vk\vk_image_view.cc" />
     <ClCompile Include="..\..\src\tess\vk\vk_instance.cc" />
     <ClCompile Include="..\..\src\tess\vk\vk_layer_extension.cc" />
+    <ClCompile Include="..\..\src\tess\vk\vk_pipeline.cc" />
     <ClCompile Include="..\..\src\tess\vk\vk_pipeline_layout.cc" />
     <ClCompile Include="..\..\src\tess\vk\vk_queue.cc" />
     <ClCompile Include="..\..\src\tess\vk\vk_render_pass.cc" />
