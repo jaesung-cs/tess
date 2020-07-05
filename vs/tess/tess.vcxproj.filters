@@ -84,6 +84,9 @@
     <ClInclude Include="..\..\src\tess\vk\vk_render_pass.h">
       <Filter>src\tess\vk</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\tess\vk\vk_pipeline_layout.h">
+      <Filter>src\tess\vk</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\lib\tinyxml2\tinyxml2.cpp">
@@ -132,6 +135,9 @@
       <Filter>src\tess\vk</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\tess\vk\vk_render_pass.cc">
+      <Filter>src\tess\vk</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\tess\vk\vk_pipeline_layout.cc">
       <Filter>src\tess\vk</Filter>
     </ClCompile>
   </ItemGroup>

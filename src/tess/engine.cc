@@ -236,10 +236,16 @@ void Engine::InitializeVulkan()
   vk::RenderPassCreator render_pass_creator{ device_ };
   render_pass_creator.SetColorAttachmentImageFormat(swapchain_.ImageFormat());
   render_pass_ = render_pass_creator.Create();
+
+  // Create pipeline layout
+  vk::PipelineLayoutCreator pipeline_layout_creator{ device_ };
+  pipeline_layout_ = pipeline_layout_creator.Create();
 }
 
 void Engine::Cleanup()
 {
+  pipeline_layout_.Destroy();
+
   render_pass_.Destroy();
 
   vertex_shader_.Destroy();

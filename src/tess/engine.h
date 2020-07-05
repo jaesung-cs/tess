@@ -16,6 +16,7 @@
 #include "tess/vk/vk_device_memory.h"
 #include "tess/vk/vk_shader_module.h"
 #include "tess/vk/vk_render_pass.h"
+#include "tess/vk/vk_pipeline_layout.h"
 
 struct GLFWwindow;
 
@@ -70,6 +71,8 @@ private:
   vk::ShaderModule fragment_shader_;
 
   vk::RenderPass render_pass_;
+
+  vk::PipelineLayout pipeline_layout_;
 
   // Validation layer for debug
 #ifdef NDEBUG
