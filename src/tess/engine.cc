@@ -100,6 +100,9 @@ void Engine::Run()
   {
     // Update events
     glfwPollEvents();
+
+    // Draw
+    DrawFrame();
   }
 
   device_.WaitIdle();
@@ -291,10 +294,22 @@ void Engine::InitializeVulkan()
 
     swapchain_command_buffer.End();
   }
+
+  // Create semaphores
+  vk::SemaphoreCreator semaphore_creator{ device_ };
+  image_available_semaphore_ = semaphore_creator.Create();
+  render_finished_semaphore_ = semaphore_creator.Create();
+}
+
+void Engine::DrawFrame()
+{
 }
 
 void Engine::Cleanup()
 {
+  image_available_semaphore_.Destroy();
+  render_finished_semaphore_.Destroy();
+
   command_pool_.Destroy();
 
   for (auto& swapchain_framebuffer : swapchain_framebuffers_)

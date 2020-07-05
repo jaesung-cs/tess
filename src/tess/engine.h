@@ -20,6 +20,7 @@
 #include "tess/vk/vk_pipeline.h"
 #include "tess/vk/vk_framebuffer.h"
 #include "tess/vk/vk_command_buffer.h"
+#include "tess/vk/vk_semaphore.h"
 
 struct GLFWwindow;
 
@@ -48,6 +49,8 @@ private:
   void Initialize();
   void InitializeGlfw();
   void InitializeVulkan();
+
+  void DrawFrame();
 
   void Cleanup();
 
@@ -84,6 +87,9 @@ private:
   vk::CommandPool command_pool_;
 
   std::vector<vk::CommandBuffer> swapchain_command_buffers_;
+
+  vk::Semaphore image_available_semaphore_;
+  vk::Semaphore render_finished_semaphore_;
 
   // Validation layer for debug
 #ifdef NDEBUG

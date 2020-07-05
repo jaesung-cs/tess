@@ -39,6 +39,7 @@
     <ClInclude Include="..\..\src\tess\vk\vk_pipeline_layout.h" />
     <ClInclude Include="..\..\src\tess\vk\vk_queue.h" />
     <ClInclude Include="..\..\src\tess\vk\vk_render_pass.h" />
+    <ClInclude Include="..\..\src\tess\vk\vk_semaphore.h" />
     <ClInclude Include="..\..\src\tess\vk\vk_shader_module.h" />
     <ClInclude Include="..\..\src\tess\vk\vk_surface.h" />
     <ClInclude Include="..\..\src\tess\vk\vk_swapchain.h" />
@@ -60,6 +61,7 @@
     <ClCompile Include="..\..\src\tess\vk\vk_pipeline_layout.cc" />
     <ClCompile Include="..\..\src\tess\vk\vk_queue.cc" />
     <ClCompile Include="..\..\src\tess\vk\vk_render_pass.cc" />
+    <ClCompile Include="..\..\src\tess\vk\vk_semaphore.cc" />
     <ClCompile Include="..\..\src\tess\vk\vk_shader_module.cc" />
     <ClCompile Include="..\..\src\tess\vk\vk_surface.cc" />
     <ClCompile Include="..\..\src\tess\vk\vk_swapchain.cc" />
