@@ -12,6 +12,7 @@ namespace vk
 class Semaphore;
 class CommandBuffer;
 class Swapchain;
+class Fence;
 
 class Queue
 {
@@ -28,6 +29,7 @@ public:
   void AddSubmitSignalSemaphores(Semaphore semaphore);
   void AddSubmitCommandBuffer(CommandBuffer command_buffer);
   void Submit();
+  void Submit(Fence fence);
 
   // Present
   void AddPresentWaitSemaphore(Semaphore semaphore);

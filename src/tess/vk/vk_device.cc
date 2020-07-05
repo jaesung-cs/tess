@@ -3,6 +3,7 @@
 #include <iostream>
 #include <iomanip>
 
+#include "tess/vk/vk_queue.h"
 #include "tess/vk/vk_exception.h"
 
 namespace tess

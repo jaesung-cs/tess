@@ -96,6 +96,9 @@
     <ClInclude Include="..\..\src\tess\vk\vk_semaphore.h">
       <Filter>src\tess\vk</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\tess\vk\vk_fence.h">
+      <Filter>src\tess\vk</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\lib\tinyxml2\tinyxml2.cpp">
@@ -156,6 +159,9 @@
       <Filter>src\tess\vk</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\tess\vk\vk_semaphore.cc">
+      <Filter>src\tess\vk</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\tess\vk\vk_fence.cc">
       <Filter>src\tess\vk</Filter>
     </ClCompile>
   </ItemGroup>

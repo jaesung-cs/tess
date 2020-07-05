@@ -295,36 +295,62 @@ void Engine::InitializeVulkan()
     swapchain_command_buffer.End();
   }
 
-  // Create semaphores
+  // Create semaphores and fences
   vk::SemaphoreCreator semaphore_creator{ device_ };
-  image_available_semaphore_ = semaphore_creator.Create();
-  render_finished_semaphore_ = semaphore_creator.Create();
+  vk::FenceCreator fence_creator{ device_ };
+  for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+  {
+    image_available_semaphore_.push_back(semaphore_creator.Create());
+    render_finished_semaphore_.push_back(semaphore_creator.Create());
+    in_flight_fences_.push_back(fence_creator.Create());
+  }
+
+  // Fence aliases
+  images_in_flight_fences_.resize(swapchain_framebuffers_.size());
 }
 
 void Engine::DrawFrame()
 {
-  uint32_t image_index;
-  vkAcquireNextImageKHR(device_, swapchain_, UINT64_MAX, image_available_semaphore_, VK_NULL_HANDLE, &image_index);
+  in_flight_fences_[current_frame_].Wait();
 
-  graphics_queue_.AddSubmitColorAttachmentOutputWaitStage(image_available_semaphore_);
-  graphics_queue_.AddSubmitSignalSemaphores(render_finished_semaphore_);
+  uint32_t image_index;
+  vkAcquireNextImageKHR(device_, swapchain_, UINT64_MAX, image_available_semaphore_[current_frame_], VK_NULL_HANDLE, &image_index);
+
+  // Check if a previous frame is using this image (i.e. there is its fence to wait on)
+  if (images_in_flight_fences_[image_index].IsValid())
+    images_in_flight_fences_[image_index].Wait();
+
+  // Mark the image as now being in use by this frame
+  images_in_flight_fences_[image_index] = in_flight_fences_[current_frame_];
+
+  in_flight_fences_[current_frame_].Reset();
+
+  graphics_queue_.AddSubmitColorAttachmentOutputWaitStage(image_available_semaphore_[current_frame_]);
+  graphics_queue_.AddSubmitSignalSemaphores(render_finished_semaphore_[current_frame_]);
   graphics_queue_.AddSubmitCommandBuffer(swapchain_command_buffers_[image_index]);
-  graphics_queue_.Submit();
+  graphics_queue_.Submit(in_flight_fences_[current_frame_]);
 
   graphics_queue_.WaitIdle();
 
-  present_queue_.AddPresentWaitSemaphore(render_finished_semaphore_);
+  present_queue_.AddPresentWaitSemaphore(render_finished_semaphore_[current_frame_]);
   present_queue_.SetPresentSwapchain(swapchain_);
   present_queue_.SetPresentImageIndex(image_index);
   present_queue_.Present();
 
   present_queue_.WaitIdle();
+
+  current_frame_ = (current_frame_ + 1) % MAX_FRAMES_IN_FLIGHT;
 }
 
 void Engine::Cleanup()
 {
-  image_available_semaphore_.Destroy();
-  render_finished_semaphore_.Destroy();
+  for (auto& semaphore : image_available_semaphore_)
+    semaphore.Destroy();
+  for (auto& semaphore : render_finished_semaphore_)
+    semaphore.Destroy();
+
+  for (auto& fence : in_flight_fences_)
+    fence.Destroy();
 
   command_pool_.Destroy();
 

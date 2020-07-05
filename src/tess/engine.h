@@ -10,6 +10,7 @@
 #include "tess/vk/vk_layer_extension.h"
 #include "tess/vk/vk_instance.h"
 #include "tess/vk/vk_device.h"
+#include "tess/vk/vk_queue.h"
 #include "tess/vk/vk_surface.h"
 #include "tess/vk/vk_swapchain.h"
 #include "tess/vk/vk_buffer.h"
@@ -21,6 +22,7 @@
 #include "tess/vk/vk_framebuffer.h"
 #include "tess/vk/vk_command_buffer.h"
 #include "tess/vk/vk_semaphore.h"
+#include "tess/vk/vk_fence.h"
 
 struct GLFWwindow;
 
@@ -55,7 +57,6 @@ private:
   void Cleanup();
 
   GLFWwindow* window_ = nullptr;
-  size_t current_frame_ = 0;
 
   // Vulkan wrapper
   vk::LayerExtension layer_extension_;
@@ -88,8 +89,14 @@ private:
 
   std::vector<vk::CommandBuffer> swapchain_command_buffers_;
 
-  vk::Semaphore image_available_semaphore_;
-  vk::Semaphore render_finished_semaphore_;
+  // Frames in flight
+  static const int MAX_FRAMES_IN_FLIGHT = 2;
+  int current_frame_ = 0;
+
+  std::vector<vk::Semaphore> image_available_semaphore_;
+  std::vector<vk::Semaphore> render_finished_semaphore_;
+  std::vector<vk::Fence> in_flight_fences_;
+  std::vector<vk::Fence> images_in_flight_fences_;
 
   // Validation layer for debug
 #ifdef NDEBUG

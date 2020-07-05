@@ -3,6 +3,7 @@
 #include "tess/vk/vk_semaphore.h"
 #include "tess/vk/vk_command_buffer.h"
 #include "tess/vk/vk_swapchain.h"
+#include "tess/vk/vk_fence.h"
 #include "tess/vk/vk_exception.h"
 
 namespace tess
@@ -51,6 +52,29 @@ void Queue::Submit()
   submit_info_.pCommandBuffers = command_buffers_.data();
 
   if (VkResult result = vkQueueSubmit(queue_, 1, &submit_info_, VK_NULL_HANDLE))
+    throw Exception("Failed to submit command buffer!", result);
+
+  // Clear intermediate data
+  wait_semaphores_.clear();
+  wait_stages_.clear();
+  signal_semaphores_.clear();
+  command_buffers_.clear();
+}
+
+void Queue::Submit(Fence fence)
+{
+  // TODO: handle with/without fence cases in one place
+  submit_info_.waitSemaphoreCount = wait_semaphores_.size();
+  submit_info_.pWaitSemaphores = wait_semaphores_.data();
+  submit_info_.pWaitDstStageMask = wait_stages_.data();
+
+  submit_info_.signalSemaphoreCount = signal_semaphores_.size();
+  submit_info_.pSignalSemaphores = signal_semaphores_.data();
+
+  submit_info_.commandBufferCount = command_buffers_.size();
+  submit_info_.pCommandBuffers = command_buffers_.data();
+
+  if (VkResult result = vkQueueSubmit(queue_, 1, &submit_info_, fence))
     throw Exception("Failed to submit command buffer!", result);
 
   // Clear intermediate data
