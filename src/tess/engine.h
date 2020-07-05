@@ -14,6 +14,7 @@
 #include "tess/vk/vk_swapchain.h"
 #include "tess/vk/vk_buffer.h"
 #include "tess/vk/vk_device_memory.h"
+#include "tess/vk/vk_shader_module.h"
 
 struct GLFWwindow;
 
@@ -63,6 +64,9 @@ private:
 
   vk::Buffer buffer_;
   vk::DeviceMemory device_memory_;
+
+  vk::ShaderModule vertex_shader_;
+  vk::ShaderModule fragment_shader_;
 
   // Validation layer for debug
 #ifdef NDEBUG

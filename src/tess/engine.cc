@@ -224,15 +224,29 @@ void Engine::InitializeVulkan()
     -0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
   };
   device_memory_.MemoryCopy(0, sizeof(float) * 15, data);
+
+  // Create shaders
+  vk::ShaderModuleCreator shader_module_creator{ device_ };
+  shader_module_creator.LoadCompiledSpirVFile("..\\src\\shader\\vert.spv");
+  vertex_shader_ = shader_module_creator.Create();
+  shader_module_creator.LoadCompiledSpirVFile("..\\src\\shader\\frag.spv");
+  fragment_shader_ = shader_module_creator.Create();
 }
 
 void Engine::Cleanup()
 {
+  vertex_shader_.Destroy();
+  fragment_shader_.Destroy();
+
   buffer_.Destroy();
   device_memory_.Free();
+
   swapchain_.Destroy();
+
   device_.Destroy();
+
   surface_.Destroy();
+
   instance_.Destroy();
 
   glfwDestroyWindow(window_);
