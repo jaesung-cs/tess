@@ -9,6 +9,7 @@
 #include "tess/vk/vk_render_pass.h"
 #include "tess/vk/vk_framebuffer.h"
 #include "tess/vk/vk_pipeline.h"
+#include "tess/vk/vk_buffer.h"
 
 namespace tess
 {
@@ -99,6 +100,8 @@ public:
   void CmdBeginRenderPass(RenderPass render_pass);
 
   void CmdBindPipeline(Pipeline pipeline);
+
+  void CmdBindVertexBuffers(Buffer buffer);
 
   void CmdDraw(int vertex_count, int instance_count, int first_vertex = 0, int first_instance = 0);
 

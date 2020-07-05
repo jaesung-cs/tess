@@ -1,5 +1,6 @@
 #include "tess/vk/vk_buffer.h"
 
+#include "tess/vk/vk_device_memory.h"
 #include "tess/vk/vk_exception.h"
 
 namespace tess
@@ -72,6 +73,11 @@ void Buffer::Destroy()
 void Buffer::LoadMemoryRequirements()
 {
   vkGetBufferMemoryRequirements(device_, buffer_, &memory_requirements_);
+}
+
+void Buffer::BindMemory(DeviceMemory memory, uint64_t offset)
+{
+  vkBindBufferMemory(device_, buffer_, memory, offset);
 }
 }
 }

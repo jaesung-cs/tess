@@ -225,12 +225,15 @@ void Engine::InitializeVulkan()
   device_memory_allocator.ChooseHostVisibleCoherentMemory(physical_device_, buffer_);
   device_memory_ = device_memory_allocator.Allocate(1048576);
 
+  // Bind buffer to memory
+  buffer_.BindMemory(device_memory_);
+
   // Filling buffer
   float data[] =
   {
-    0.0f, -0.5f, 1.0f, 1.0f, 1.0f,
-    0.5f, 0.5f, 0.0f, 1.0f, 0.0f,
-    -0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
+    0.0f, -0.5f, 1.0f, 0.0f, 0.0f,
+    -0.5f, 0.5f, 0.0f, 1.0f, 0.0f,
+    0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
   };
   device_memory_.MemoryCopy(0, sizeof(float) * 15, data);
 
@@ -252,6 +255,9 @@ void Engine::InitializeVulkan()
 
   // Create pipeline
   vk::GraphicsPipelineCreator pipeline_creator{ device_ };
+  pipeline_creator.SetAttributeStride(sizeof(float) * 5);
+  pipeline_creator.SetAttribute(0, 2, 0);
+  pipeline_creator.SetAttribute(1, 3, sizeof(float) * 2);
   pipeline_creator.AddVertexShaderStage(vertex_shader_);
   pipeline_creator.AddFragmentShaderStage(fragment_shader_);
   pipeline_creator.SetViewport(width_, height_);
@@ -293,6 +299,8 @@ void Engine::InitializeVulkan()
     swapchain_command_buffer.CmdBeginRenderPass(render_pass_);
 
     swapchain_command_buffer.CmdBindPipeline(pipeline_);
+
+    swapchain_command_buffer.CmdBindVertexBuffers(buffer_);
 
     swapchain_command_buffer.CmdDraw(3, 1);
 
@@ -403,6 +411,9 @@ void Engine::RecreateSwapchain()
 
   // Create pipeline
   vk::GraphicsPipelineCreator pipeline_creator{ device_ };
+  pipeline_creator.SetAttributeStride(sizeof(float) * 5);
+  pipeline_creator.SetAttribute(0, 2, 0);
+  pipeline_creator.SetAttribute(1, 3, sizeof(float) * 2);
   pipeline_creator.AddVertexShaderStage(vertex_shader_);
   pipeline_creator.AddFragmentShaderStage(fragment_shader_);
   pipeline_creator.SetViewport(width_, height_);
@@ -438,6 +449,8 @@ void Engine::RecreateSwapchain()
     swapchain_command_buffer.CmdBeginRenderPass(render_pass_);
 
     swapchain_command_buffer.CmdBindPipeline(pipeline_);
+
+    swapchain_command_buffer.CmdBindVertexBuffers(buffer_);
 
     swapchain_command_buffer.CmdDraw(3, 1);
 

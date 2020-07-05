@@ -10,6 +10,7 @@ namespace tess
 namespace vk
 {
 class Buffer;
+class DeviceMemory;
 
 class BufferCreator
 {
@@ -43,10 +44,12 @@ public:
 
   void Destroy();
 
-  operator VkBuffer () { return buffer_; }
+  operator VkBuffer () const { return buffer_; }
 
   void LoadMemoryRequirements();
   const auto& MemoryRequirements() const { return memory_requirements_; }
+
+  void BindMemory(DeviceMemory memory, uint64_t offset = 0);
 
 private:
   Device device_;

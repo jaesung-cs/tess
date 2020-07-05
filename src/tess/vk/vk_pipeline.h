@@ -26,6 +26,9 @@ public:
   void AddVertexShaderStage(ShaderModule shader_module);
   void AddFragmentShaderStage(ShaderModule shader_module);
 
+  void SetAttributeStride(int stride);
+  void SetAttribute(int location, int size, int offset);
+
   void SetViewport(float width, float height);
   void SetViewport(float x, float y, float width, float height);
   void SetPipelineLayout(PipelineLayout pipeline_layout);
@@ -36,6 +39,8 @@ public:
 private:
   std::vector<VkPipelineShaderStageCreateInfo> shader_stages_;
 
+  VkVertexInputBindingDescription binding_description_{};
+  std::vector<VkVertexInputAttributeDescription> attribute_descriptions_{};
   VkPipelineVertexInputStateCreateInfo vertex_input_info_{};
 
   VkPipelineInputAssemblyStateCreateInfo input_assembly_{};

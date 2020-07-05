@@ -30,6 +30,9 @@ GraphicsPipelineCreator::GraphicsPipelineCreator(Device device)
   vertex_input_info_.vertexAttributeDescriptionCount = 0;
   vertex_input_info_.vertexBindingDescriptionCount = 0;
 
+  binding_description_.binding = 0;
+  binding_description_.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
   input_assembly_.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
   input_assembly_.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
   input_assembly_.primitiveRestartEnable = VK_FALSE;
@@ -85,6 +88,30 @@ GraphicsPipelineCreator::~GraphicsPipelineCreator()
 {
 }
 
+void GraphicsPipelineCreator::SetAttributeStride(int stride)
+{
+  binding_description_.stride = stride;
+}
+
+void GraphicsPipelineCreator::SetAttribute(int location, int size, int offset)
+{
+  attribute_descriptions_.emplace_back();
+  auto& attribute_description = attribute_descriptions_.back();
+
+  attribute_description.binding = 0;
+  attribute_description.location = location;
+
+  switch (size)
+  {
+  case 1: attribute_description.format = VK_FORMAT_R32_SFLOAT; break;
+  case 2: attribute_description.format = VK_FORMAT_R32G32_SFLOAT; break;
+  case 3: attribute_description.format = VK_FORMAT_R32G32B32_SFLOAT; break;
+  case 4: attribute_description.format = VK_FORMAT_R32G32B32A32_SFLOAT; break;
+  }
+
+  attribute_description.offset = offset;
+}
+
 void GraphicsPipelineCreator::AddVertexShaderStage(ShaderModule shader_module)
 {
   shader_stages_.push_back({});
@@ -135,6 +162,15 @@ void GraphicsPipelineCreator::SetRenderPass(RenderPass render_pass)
 
 Pipeline GraphicsPipelineCreator::Create()
 {
+  if (!attribute_descriptions_.empty())
+  {
+    vertex_input_info_.vertexBindingDescriptionCount = 1;
+    vertex_input_info_.pVertexBindingDescriptions = &binding_description_;
+
+    vertex_input_info_.vertexAttributeDescriptionCount = attribute_descriptions_.size();
+    vertex_input_info_.pVertexAttributeDescriptions = attribute_descriptions_.data();
+  }
+
   create_info_.stageCount = shader_stages_.size();
   create_info_.pStages = shader_stages_.data();
 

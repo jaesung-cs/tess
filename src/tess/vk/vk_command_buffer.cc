@@ -171,6 +171,13 @@ void CommandBuffer::CmdBindPipeline(Pipeline pipeline)
   vkCmdBindPipeline(command_buffer_, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
 }
 
+void CommandBuffer::CmdBindVertexBuffers(Buffer buffer)
+{
+  VkBuffer buffers[] = { buffer };
+  VkDeviceSize offsets[] = { 0 };
+  vkCmdBindVertexBuffers(command_buffer_, 0, 1, buffers, offsets);
+}
+
 void CommandBuffer::CmdDraw(int vertex_count, int instance_count, int first_vertex, int first_instance)
 {
   vkCmdDraw(command_buffer_, vertex_count, instance_count, first_vertex, first_instance);
